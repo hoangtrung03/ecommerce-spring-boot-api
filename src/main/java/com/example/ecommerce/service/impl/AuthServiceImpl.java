@@ -143,14 +143,14 @@ public class AuthServiceImpl implements AuthService {
                 saveUserToken(user, accessToken);
 
                 var authResponse = AuthResponse.builder()
-                        .message("Login successfully")
+                        .message("Refresh token successfully")
                         .data(AuthResponse.AuthTokens.builder()
                                 .accessToken(accessToken)
                                 .refreshToken(refreshToken)
                                 .build())
                         .build();
-
-                new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
+                ObjectMapper objectMapper = new ObjectMapper();
+                objectMapper.writeValue(response.getOutputStream(), authResponse);
             }
         }
     }
