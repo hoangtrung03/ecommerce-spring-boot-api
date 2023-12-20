@@ -1,4 +1,4 @@
-package com.example.ecommerce.exception;
+package com.example.ecommerce.model;
 
 public class StatusCode {
 

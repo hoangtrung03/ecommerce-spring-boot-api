@@ -55,7 +55,7 @@ public class AuthServiceImpl implements AuthService {
 
         return AuthResponse.builder()
                 .message("User registered successfully")
-                .result(AuthResponse.AuthTokens.builder()
+                .data(AuthResponse.AuthTokens.builder()
                         .accessToken(jwtToken)
                         .refreshToken(refreshToken)
                         .build())
@@ -83,7 +83,7 @@ public class AuthServiceImpl implements AuthService {
 
             return AuthResponse.builder()
                     .message("Login successfully")
-                    .result(AuthResponse.AuthTokens.builder()
+                    .data(AuthResponse.AuthTokens.builder()
                             .accessToken(jwtToken)
                             .refreshToken(refreshToken)
                             .build())
@@ -144,7 +144,7 @@ public class AuthServiceImpl implements AuthService {
 
                 var authResponse = AuthResponse.builder()
                         .message("Login successfully")
-                        .result(AuthResponse.AuthTokens.builder()
+                        .data(AuthResponse.AuthTokens.builder()
                                 .accessToken(accessToken)
                                 .refreshToken(refreshToken)
                                 .build())
