@@ -3,10 +3,8 @@ package com.example.ecommerce.service.impl;
 import com.example.ecommerce.dto.request.AuthRequest;
 import com.example.ecommerce.dto.request.RegisterRequest;
 import com.example.ecommerce.dto.response.AuthResponse;
-import com.example.ecommerce.entity.Role;
-import com.example.ecommerce.entity.Token;
-import com.example.ecommerce.entity.TokenType;
-import com.example.ecommerce.entity.User;
+import com.example.ecommerce.entity.*;
+import com.example.ecommerce.repository.RoleRepository;
 import com.example.ecommerce.repository.TokenRepository;
 import com.example.ecommerce.repository.UserRepository;
 import com.example.ecommerce.service.AuthService;
@@ -23,6 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Collections;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +31,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final RoleRepository roleRepository;
 
     @Override
     public AuthResponse register(RegisterRequest request) {
@@ -40,14 +40,17 @@ public class AuthServiceImpl implements AuthService {
         if (isExistUser != null) {
             return AuthResponse.builder().message("User already exist").build();
         }
-
+        System.out.printf("roleUser");
+        Role roleUser = roleRepository.findByName(RoleName.USER);
+        System.out.printf("roleUser", roleUser);
         var user = User.builder()
                 .firstname(request.getFirstname())
                 .lastname(request.getLastname())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(Role.USER)
+                .role(Collections.singletonList(roleUser))
                 .build();
+        System.out.printf("user", user);
         var savedUser = repository.save(user);
         var jwtToken = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);

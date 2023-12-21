@@ -1,5 +1,6 @@
 package com.example.ecommerce.config;
 
+import com.example.ecommerce.entity.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,8 +14,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import static com.example.ecommerce.entity.Permission.*;
-import static com.example.ecommerce.entity.Role.ADMIN;
-import static com.example.ecommerce.entity.Role.MANAGER;
+import com.example.ecommerce.entity.RoleName;
 import static org.springframework.http.HttpMethod.*;
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
@@ -44,12 +44,14 @@ public class SecurityConfiguration {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        System.out.printf("http", http);
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req ->
                         req.requestMatchers(WHITE_LIST_URL)
                                 .permitAll()
-                                .requestMatchers("/api/v1/management/**").hasAnyRole(ADMIN.name(), MANAGER.name())
+                                .requestMatchers("/api/v1/management/**").hasAnyRole(RoleName.ADMIN.name(), RoleName.MANAGER.name())
+                                .requestMatchers(POST, "/api/v1/auth/**").permitAll()
                                 .requestMatchers(GET, "/api/v1/management/**").hasAnyAuthority(ADMIN_READ.name(), MANAGER_READ.name())
                                 .requestMatchers(POST, "/api/v1/management/**").hasAnyAuthority(ADMIN_CREATE.name(), MANAGER_CREATE.name())
                                 .requestMatchers(PUT, "/api/v1/management/**").hasAnyAuthority(ADMIN_UPDATE.name(), MANAGER_UPDATE.name())
