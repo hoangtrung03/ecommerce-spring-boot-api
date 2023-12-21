@@ -15,7 +15,7 @@ public interface AuthService {
     AuthResponse authenticate(AuthRequest request);
 
     void revokeAllUserTokens(User user);
-    void refreshToken(
+    AuthResponse refreshToken(
             HttpServletRequest request,
             HttpServletResponse response
     ) throws IOException;
