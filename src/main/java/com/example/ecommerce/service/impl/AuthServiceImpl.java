@@ -40,9 +40,9 @@ public class AuthServiceImpl implements AuthService {
         if (isExistUser != null) {
             return AuthResponse.builder().message("User already exist").build();
         }
-        System.out.printf("roleUser");
+
         Role roleUser = roleRepository.findByName(RoleName.USER);
-        System.out.printf("roleUser", roleUser);
+
         var user = User.builder()
                 .firstname(request.getFirstname())
                 .lastname(request.getLastname())
@@ -50,7 +50,6 @@ public class AuthServiceImpl implements AuthService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Collections.singletonList(roleUser))
                 .build();
-        System.out.printf("user", user);
         var savedUser = repository.save(user);
         var jwtToken = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
