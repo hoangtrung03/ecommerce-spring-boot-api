@@ -12,7 +12,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class AuthResponse {
     private String message;
-    private AuthTokens data;
+
+    @JsonProperty("data")
+    private Object data;
     @Data
     @Builder
     @AllArgsConstructor

@@ -118,7 +118,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void refreshToken(
+    public AuthResponse refreshToken(
             HttpServletRequest request,
             HttpServletResponse response
     ) throws IOException {
@@ -127,7 +127,7 @@ public class AuthServiceImpl implements AuthService {
         final String userEmail;
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return;
+            return AuthResponse.builder().message("Invalid access token").build();
         }
 
         refreshToken = authHeader.substring(7);
@@ -137,7 +137,7 @@ public class AuthServiceImpl implements AuthService {
             var user = this.repository.findByEmail(userEmail);
 
             if (user == null) {
-                return;
+                return AuthResponse.builder().message("User not found").data("").build();
             }
 
             if (jwtService.isTokenValid(refreshToken, user)) {
@@ -152,9 +152,11 @@ public class AuthServiceImpl implements AuthService {
                                 .refreshToken(refreshToken)
                                 .build())
                         .build();
-                ObjectMapper objectMapper = new ObjectMapper();
-                objectMapper.writeValue(response.getOutputStream(), authResponse);
+
+                return authResponse;
             }
         }
+
+        return AuthResponse.builder().message("Refresh token failed").build();
     }
 }
