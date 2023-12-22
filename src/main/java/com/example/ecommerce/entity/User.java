@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Data
 @Builder
@@ -37,8 +38,13 @@ public class User implements UserDetails {
     @Column(name= "updated_at")
     private Instant updatedAt;
 
-    @ManyToMany(fetch = FetchType.EAGER  , cascade = CascadeType.PERSIST)
-    List <Role> role;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "ec_user_role",
+            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id")
+    )
+    private Set<Role> role = new HashSet<>();
 
     @OneToMany(mappedBy = "user")
     private List<Token> tokens;
@@ -50,9 +56,10 @@ public class User implements UserDetails {
      */
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        List<GrantedAuthority> authorities = new ArrayList<>();
-        this.role.forEach(role -> authorities.add(new SimpleGrantedAuthority(role.getRoleName())));
-        return authorities;
+        return role.stream()
+                .map(Role::getAuthorities)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
     }
 
     /**

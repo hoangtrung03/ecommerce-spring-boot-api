@@ -16,12 +16,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -41,14 +42,14 @@ public class AuthServiceImpl implements AuthService {
             return AuthResponse.builder().message("User already exist").build();
         }
 
-        Role roleUser = roleRepository.findByName(RoleName.USER);
+        Role roleUser = roleRepository.findByName("USER");
 
         var user = User.builder()
                 .firstname(request.getFirstname())
                 .lastname(request.getLastname())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(Collections.singletonList(roleUser))
+                .role(new HashSet<>(Collections.singletonList(roleUser)))
                 .build();
         var savedUser = repository.save(user);
         var jwtToken = jwtService.generateToken(user);
