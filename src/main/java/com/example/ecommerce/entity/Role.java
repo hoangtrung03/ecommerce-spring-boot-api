@@ -22,7 +22,7 @@ public class Role {
 
     private String name;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "ec_role_authoritie",
             joinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"),

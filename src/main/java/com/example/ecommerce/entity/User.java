@@ -38,7 +38,7 @@ public class User implements UserDetails {
     @Column(name= "updated_at")
     private Instant updatedAt;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "ec_user_role",
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
@@ -46,7 +46,7 @@ public class User implements UserDetails {
     )
     private Set<Role> role = new HashSet<>();
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
     private List<Token> tokens;
 
     /**

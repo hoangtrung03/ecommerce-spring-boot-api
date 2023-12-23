@@ -27,7 +27,7 @@ public class RoleServiceImpl implements RoleService {
         if (roleName == null || roleName.getName() == null || roleName.getName().isEmpty()) {
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
-                    .body(new ResultResponse(StatusCode.INVALID_ARGUMENT, "Role name cannot be null or empty"));
+                    .body(new ResultResponse(StatusCode.BAD_REQUEST, "Role name cannot be null or empty"));
         }
 
         Role role = new Role();

@@ -6,6 +6,7 @@ import com.example.ecommerce.model.ErrorModel;
 import com.example.ecommerce.model.StatusCode;
 import org.hibernate.ObjectNotFoundException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AccountStatusException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -25,8 +26,9 @@ import java.util.stream.Collectors;
 public class AuthExceptionHandler {
     @ExceptionHandler(ObjectNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    ResultResponse handleObjectNotFoundException(ObjectNotFoundException ex) {
-        return new ResultResponse(StatusCode.NOT_FOUND, ex.getMessage());
+    public ResponseEntity<ResultResponse> handleObjectNotFoundException(ObjectNotFoundException ex) {
+        ResultResponse response = new ResultResponse(StatusCode.NOT_FOUND, ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
@@ -63,23 +65,11 @@ public class AuthExceptionHandler {
         return new ResultResponse(StatusCode.UNAUTHORIZED, "username or password is incorrect.", ex.getMessage());
     }
 
-    @ExceptionHandler(InsufficientAuthenticationException.class)
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    ResultResponse handleInsufficientAuthenticationException(InsufficientAuthenticationException ex) {
-        return new ResultResponse(StatusCode.UNAUTHORIZED, "Login credentials are missing.", ex.getMessage());
-    }
-
     @ExceptionHandler(AccountStatusException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     ResultResponse handleAccountStatusException(AccountStatusException ex) {
         return new ResultResponse(StatusCode.UNAUTHORIZED, "User account is abnormal.", ex.getMessage());
     }
-
-//    @ExceptionHandler(InvalidBearerTokenException.class)
-//    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-//    Result handleInvalidBearerTokenException(InvalidBearerTokenException ex) {
-//        return new Result(false, StatusCode.UNAUTHORIZED, "The access token provided is expired, revoked, malformed, or invalid for other reasons.", ex.getMessage());
-//    }
 
     @ExceptionHandler(AccessDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
