@@ -1,5 +1,7 @@
 package com.example.ecommerce.dto.response;
 
+import org.springframework.http.HttpStatus;
+
 public class ResultResponse {
 
     private Integer code; // Status code. e.g., 200
@@ -9,7 +11,7 @@ public class ResultResponse {
     private Object data; // The response payload
 
 
-    public ResultResponse() {
+    public ResultResponse(HttpStatus unauthorized, String authenticationFailed) {
     }
 
     public ResultResponse(Integer code, String message) {

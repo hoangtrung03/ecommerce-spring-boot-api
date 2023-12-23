@@ -95,25 +95,36 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private void saveUserToken(User user, String jwtToken) {
-        var token = Token.builder()
-                .user(user)
-                .token(jwtToken)
-                .tokenType(TokenType.BEARER)
-                .expired(false)
-                .revoked(false)
-                .build();
-        tokenRepository.save(token);
+        Token existingToken = tokenRepository.findByUser(user);
+
+        if (existingToken != null) {
+            existingToken.setToken(jwtToken);
+            existingToken.setExpired(false);
+            existingToken.setRevoked(false);
+            tokenRepository.save(existingToken);
+        } else {
+            Token newToken = Token.builder()
+                    .user(user)
+                    .token(jwtToken)
+                    .tokenType(TokenType.BEARER)
+                    .expired(false)
+                    .revoked(false)
+                    .build();
+            tokenRepository.save(newToken);
+        }
     }
 
     @Override
     public void revokeAllUserTokens(User user) {
         var validUserTokens = tokenRepository.findAllValidTokenByUser(user.getId());
+
         if (validUserTokens.isEmpty())
             return;
         validUserTokens.forEach(token -> {
             token.setExpired(true);
             token.setRevoked(true);
         });
+
         tokenRepository.saveAll(validUserTokens);
     }
 
