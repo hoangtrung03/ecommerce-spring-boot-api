@@ -23,11 +23,11 @@ public class RoleServiceImpl implements RoleService {
      * @return the newly created role
      */
     @Override
-    public ResponseEntity<ResultResponse> createRole(RoleRequest roleName) {
+    public ResponseEntity<ResultResponse<Object>> createRole(RoleRequest roleName) {
         if (roleName == null || roleName.getName() == null || roleName.getName().isEmpty()) {
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
-                    .body(new ResultResponse(StatusCode.BAD_REQUEST, "Role name cannot be null or empty"));
+                    .body(new ResultResponse<Object>(StatusCode.BAD_REQUEST, "Role name cannot be null or empty"));
         }
 
         Role role = new Role();
@@ -36,6 +36,6 @@ public class RoleServiceImpl implements RoleService {
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(new ResultResponse(StatusCode.SUCCESS, "Role created successfully", roleName.getName()));
+                .body(new ResultResponse<Object>(StatusCode.SUCCESS, "Role created successfully", roleName.getName()));
     }
 }

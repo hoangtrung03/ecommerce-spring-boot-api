@@ -156,15 +156,13 @@ public class AuthServiceImpl implements AuthService {
                 revokeAllUserTokens(user);
                 saveUserToken(user, accessToken);
 
-                var authResponse = AuthResponse.builder()
+                return AuthResponse.builder()
                         .message("Refresh token successfully")
                         .data(AuthResponse.AuthTokens.builder()
                                 .accessToken(accessToken)
                                 .refreshToken(refreshToken)
                                 .build())
                         .build();
-
-                return authResponse;
             }
         }
 

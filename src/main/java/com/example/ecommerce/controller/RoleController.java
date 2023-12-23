@@ -17,10 +17,9 @@ public class RoleController {
     private final RoleServiceImpl roleService;
 
     @PostMapping("/create")
-    public ResponseEntity<ResultResponse> createRole(@RequestBody RoleRequest roleDTO) {
-        ResponseEntity<ResultResponse> result = roleService.createRole(roleDTO);
+    public ResponseEntity<ResultResponse<Object>> createRole(@RequestBody RoleRequest roleDTO) {
 
-        return result;
+        return ResponseEntity.ok(roleService.createRole(roleDTO).getBody());
     }
 
 }

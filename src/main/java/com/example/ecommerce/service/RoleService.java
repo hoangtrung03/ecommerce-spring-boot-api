@@ -6,5 +6,5 @@ import org.springframework.http.ResponseEntity;
 
 public interface RoleService {
 
-    ResponseEntity<ResultResponse> createRole(RoleRequest roleDTO);
+    ResponseEntity<ResultResponse<Object>> createRole(RoleRequest roleDTO);
 }

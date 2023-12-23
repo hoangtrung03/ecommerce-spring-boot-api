@@ -2,13 +2,13 @@ package com.example.ecommerce.dto.response;
 
 import org.springframework.http.HttpStatus;
 
-public class ResultResponse {
+public class ResultResponse<T> {
 
     private Integer code; // Status code. e.g., 200
 
     private String message; // Response message
 
-    private Object data; // The response payload
+    private T data; // The response payload
 
 
     public ResultResponse(HttpStatus unauthorized, String authenticationFailed) {
@@ -19,7 +19,7 @@ public class ResultResponse {
         this.message = message;
     }
 
-    public ResultResponse(Integer code, String message, Object data) {
+    public ResultResponse(Integer code, String message, T data) {
         this.code = code;
         this.message = message;
         this.data = data;
@@ -41,11 +41,11 @@ public class ResultResponse {
         this.message = message;
     }
 
-    public Object getData() {
+    public T getData() {
         return data;
     }
 
-    public void setData(Object data) {
+    public void setData(T data) {
         this.data = data;
     }
 
