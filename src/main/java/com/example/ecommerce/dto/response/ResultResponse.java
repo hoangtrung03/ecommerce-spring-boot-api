@@ -1,7 +1,10 @@
 package com.example.ecommerce.dto.response;
 
-import org.springframework.http.HttpStatus;
+import lombok.*;
 
+@Data
+@Builder
+@RequiredArgsConstructor
 public class ResultResponse<T> {
 
     private Integer code; // Status code. e.g., 200
@@ -10,15 +13,12 @@ public class ResultResponse<T> {
 
     private T data; // The response payload
 
-
-    public ResultResponse(HttpStatus unauthorized, String authenticationFailed) {
-    }
-
     public ResultResponse(Integer code, String message) {
         this.code = code;
         this.message = message;
     }
 
+    // Constructor 2
     public ResultResponse(Integer code, String message, T data) {
         this.code = code;
         this.message = message;

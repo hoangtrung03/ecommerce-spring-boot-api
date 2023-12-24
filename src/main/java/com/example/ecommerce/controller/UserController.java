@@ -36,8 +36,11 @@ public class UserController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<ResultResponse<List<UserDetailResponse>>> getAllUser() {
-        return ResponseEntity.ok(userService.getAllUser());
+    public ResponseEntity<ResultResponse<List<UserDetailResponse>>> getAllUser(
+            @RequestParam(name = "page", defaultValue = "0") Integer page,
+            @RequestParam(name = "per_page", defaultValue = "10") Integer size
+    ) {
+        return ResponseEntity.ok(userService.getAllUser(page, size));
     }
 
     @PutMapping("/update")
