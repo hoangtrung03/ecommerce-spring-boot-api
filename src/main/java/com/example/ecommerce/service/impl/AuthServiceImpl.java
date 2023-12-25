@@ -10,6 +10,7 @@ import com.example.ecommerce.repository.UserRepository;
 import com.example.ecommerce.model.UserVerifyStatus;
 import com.example.ecommerce.service.AuthService;
 import com.example.ecommerce.service.JwtService;
+import com.example.ecommerce.service.MailSenderService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final RoleRepository roleRepository;
+    private final MailSenderService mailService;
 
     @Override
     public AuthResponse register(RegisterRequest request) {
@@ -55,6 +57,10 @@ public class AuthServiceImpl implements AuthService {
         var jwtToken = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
         saveUserToken(savedUser, jwtToken);
+        int idEmail = (int) (Math.random() * 35421) + savedUser.getId();
+        mailService.sendNewMail(
+                savedUser.getEmail(), "Activate your account " +savedUser.getEmail() + " with id #" + idEmail,
+                "Click here to activate your account: http://localhost:8080/api/v1/auth/activate/" + savedUser.getId());
 
         return AuthResponse.builder()
                 .message("User registered successfully")
