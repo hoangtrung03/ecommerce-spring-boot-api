@@ -66,4 +66,12 @@ public class UserController {
     ) {
         return ResponseEntity.ok(userService.deleteUserById(id));
     }
+
+    @DeleteMapping("/delete")
+    public ResponseEntity<ResultResponse<String>> deleteMultiUsers(
+            @RequestParam("ids") List<Integer> ids
+    ) {
+        return ResponseEntity.ok(userService.deleteByMultiIds(ids));
+    }
+
 }

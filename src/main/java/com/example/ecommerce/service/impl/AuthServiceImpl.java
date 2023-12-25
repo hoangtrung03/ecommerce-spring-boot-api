@@ -7,9 +7,9 @@ import com.example.ecommerce.entity.*;
 import com.example.ecommerce.repository.RoleRepository;
 import com.example.ecommerce.repository.TokenRepository;
 import com.example.ecommerce.repository.UserRepository;
+import com.example.ecommerce.model.UserVerifyStatus;
 import com.example.ecommerce.service.AuthService;
 import com.example.ecommerce.service.JwtService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -49,6 +48,7 @@ public class AuthServiceImpl implements AuthService {
                 .lastname(request.getLastname())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
+                .userVerifyStatus(UserVerifyStatus.Unverified)
                 .role(new HashSet<>(Collections.singletonList(roleUser)))
                 .build();
         var savedUser = repository.save(user);

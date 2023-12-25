@@ -16,4 +16,5 @@ public interface UserService {
     ResultResponse<UserDetailResponse> updateUser(User currentUser, UserDetailRequest u);
     ResultResponse<UserDetailResponse> updateUserById(Integer id, UserDetailRequest u);
     ResultResponse<String> deleteUserById(Integer id);
+    ResultResponse<String> deleteByMultiIds(List<Integer> ids);
 }

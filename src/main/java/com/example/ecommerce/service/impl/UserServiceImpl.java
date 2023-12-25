@@ -76,6 +76,14 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByEmail(currentUser.getEmail());
         user.setFirstname(u.getFirstname());
         user.setLastname(u.getLastname());
+        user.setDate_of_birth(u.getDate_of_birth());
+        user.setAddress(u.getAddress());
+        user.setPhone(u.getPhone());
+        user.setGender(u.getGender());
+        user.setCountry(u.getCountry());
+        user.setCity(u.getCity());
+        user.setBio(u.getBio());
+        user.setAvatar(u.getAvatar());
         userRepository.save(user);
 
         return new ResultResponse<>(StatusCode.SUCCESS, "Update user success", UserDetailResponse.fromUser(user));
@@ -92,6 +100,14 @@ public class UserServiceImpl implements UserService {
         User userEntity = user.get();
         userEntity.setFirstname(u.getFirstname());
         userEntity.setLastname(u.getLastname());
+        userEntity.setDate_of_birth(u.getDate_of_birth());
+        userEntity.setAddress(u.getAddress());
+        userEntity.setPhone(u.getPhone());
+        userEntity.setGender(u.getGender());
+        userEntity.setCountry(u.getCountry());
+        userEntity.setCity(u.getCity());
+        userEntity.setBio(u.getBio());
+        userEntity.setAvatar(u.getAvatar());
         userRepository.save(userEntity);
 
         return new ResultResponse<>(StatusCode.SUCCESS, "Update user success", UserDetailResponse.fromUser(userEntity));
@@ -107,6 +123,16 @@ public class UserServiceImpl implements UserService {
 
         tokenRepository.deleteTokensByUserId(id);
         userRepository.deleteById(id);
+        return new ResultResponse<>(StatusCode.SUCCESS, "Delete user success", null);
+    }
+
+    @Override
+    public ResultResponse<String> deleteByMultiIds(List<Integer> ids) {
+        for (Integer id : ids) {
+            tokenRepository.deleteTokensByUserId(id);
+            userRepository.deleteById(id);
+        }
+
         return new ResultResponse<>(StatusCode.SUCCESS, "Delete user success", null);
     }
 }

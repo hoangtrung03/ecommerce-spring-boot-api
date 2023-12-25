@@ -1,5 +1,6 @@
 package com.example.ecommerce.entity;
 
+import com.example.ecommerce.model.UserVerifyStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,9 +24,13 @@ import java.util.stream.Collectors;
 @Table(name = "ec_user")
 public class User implements UserDetails {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Integer id;
+
+    @Column(nullable = true)
     private String firstname;
+
+    @Column(nullable = true)
     private String lastname;
     private String email;
     private String password;
@@ -48,6 +53,33 @@ public class User implements UserDetails {
 
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
     private List<Token> tokens;
+
+    @Temporal(TemporalType.DATE)
+    @Column(nullable = true)
+    private Date date_of_birth;
+
+    @Column(nullable = true)
+    private String bio;
+
+    @Column(nullable = true)
+    private String avatar;
+
+    @Column(nullable = true)
+    private String address;
+
+    @Column(nullable = true)
+    private String phone;
+
+    @Column(nullable = true)
+    private String country;
+
+    @Column(nullable = true)
+    private String city;
+
+    @Column(nullable = true)
+    private String gender;
+
+    private UserVerifyStatus userVerifyStatus;
 
     /**
      * Retrieves the collection of granted authorities for this user.

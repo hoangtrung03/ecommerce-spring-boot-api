@@ -6,6 +6,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -18,6 +21,14 @@ public class UserDetailResponse {
     private String firstname;
     private String lastname;
     private String email;
+    private Date date_of_birth;
+    private String avatar;
+    private String address;
+    private String phone;
+    private String gender;
+    private String country;
+    private String city;
+    private String bio;
     private Set<RoleResponse> roles;
 
     public static UserDetailResponse fromUser(User user) {
@@ -31,6 +42,14 @@ public class UserDetailResponse {
                 user.getFirstname(),
                 user.getLastname(),
                 user.getEmail(),
+                user.getDate_of_birth(),
+                user.getAvatar(),
+                user.getAddress(),
+                user.getPhone(),
+                user.getGender(),
+                user.getCountry(),
+                user.getCity(),
+                user.getBio(),
                 roleDTOs
         );
     }
