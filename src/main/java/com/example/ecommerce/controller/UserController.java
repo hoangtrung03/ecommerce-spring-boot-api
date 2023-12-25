@@ -6,6 +6,7 @@ import com.example.ecommerce.dto.response.UserDetailResponse;
 import com.example.ecommerce.entity.User;
 import com.example.ecommerce.model.StatusCode;
 import com.example.ecommerce.service.impl.UserServiceImpl;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,14 +38,32 @@ public class UserController {
 
     @GetMapping("/all")
     public ResponseEntity<ResultResponse<List<UserDetailResponse>>> getAllUser(
-            @RequestParam(name = "page", defaultValue = "0") Integer page,
-            @RequestParam(name = "per_page", defaultValue = "10") Integer size
+            @RequestParam(name = "page", defaultValue = "1") Integer page,
+            @RequestParam(name = "per_page", defaultValue = "10") Integer size,
+            @RequestParam(name = "sort_by", defaultValue = "createdAt") String sortBy,
+            @RequestParam(name = "sort_direction", required = false) String sortDirection
     ) {
-        return ResponseEntity.ok(userService.getAllUser(page, size));
+        return ResponseEntity.ok(userService.getAllUser(page, size, sortBy, sortDirection));
     }
 
     @PutMapping("/update")
-    public ResponseEntity<ResultResponse<UserDetailResponse>> updateUser(@AuthenticationPrincipal User currentUser, @RequestBody UserDetailRequest u){
+    public ResponseEntity<ResultResponse<UserDetailResponse>> updateUser(@Valid @AuthenticationPrincipal User currentUser, @RequestBody UserDetailRequest u){
         return ResponseEntity.ok(userService.updateUser(currentUser, u));
+    }
+
+    @PutMapping("update/{id}")
+    public ResponseEntity<ResultResponse<UserDetailResponse>> updateUser(
+            @Valid
+            @PathVariable("id") Integer id,
+            @RequestBody UserDetailRequest u
+    ){
+        return ResponseEntity.ok(userService.updateUserById(id, u));
+    }
+
+    @DeleteMapping("delete/{id}")
+    public ResponseEntity<ResultResponse<String>> deleteUser(
+            @PathVariable("id") Integer id
+    ) {
+        return ResponseEntity.ok(userService.deleteUserById(id));
     }
 }
