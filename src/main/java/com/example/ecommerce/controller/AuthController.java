@@ -1,6 +1,7 @@
 package com.example.ecommerce.controller;
 
 import com.example.ecommerce.dto.request.AuthRequest;
+import com.example.ecommerce.dto.request.EmailVerifyRequest;
 import com.example.ecommerce.dto.request.RegisterRequest;
 import com.example.ecommerce.dto.response.AuthResponse;
 import com.example.ecommerce.service.AuthService;
@@ -9,10 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
@@ -41,5 +39,12 @@ public class AuthController {
             HttpServletResponse response
     ) throws IOException {
         return ResponseEntity.ok(service.refreshToken(request, response)).getBody();
+    }
+
+    @GetMapping("/verify")
+    public ResponseEntity<AuthResponse> verifyEmail(
+            @RequestBody EmailVerifyRequest request
+    ) {
+        return ResponseEntity.ok(service.verifyEmail(request));
     }
 }

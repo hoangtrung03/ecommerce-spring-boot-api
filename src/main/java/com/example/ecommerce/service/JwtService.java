@@ -1,5 +1,6 @@
 package com.example.ecommerce.service;
 
+import com.example.ecommerce.entity.User;
 import io.jsonwebtoken.Claims;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -25,4 +26,6 @@ public interface JwtService {
     );
 
     boolean isTokenValid(String token, UserDetails userDetails);
+
+    String generateEmailVerifyToken(UserDetails userDetails);
 }

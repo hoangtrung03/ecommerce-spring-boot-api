@@ -24,9 +24,15 @@ public class JwtServiceImpl implements JwtService {
     private long jwtExpiration;
     @Value("${application.security.jwt.refresh-token.expiration}")
     private long refreshExpiration;
+    @Value("${application.security.jwt.email-verify-token.expiration}")
+    private long emailVerifyTokenExpiration;
 
     public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
+        try {
+            return extractClaim(token, Claims::getSubject);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
@@ -49,6 +55,12 @@ public class JwtServiceImpl implements JwtService {
             UserDetails userDetails
     ) {
         return buildToken(new HashMap<>(), userDetails, refreshExpiration);
+    }
+
+    public String generateEmailVerifyToken(UserDetails userDetails) {
+        Map<String, Object> claims = new HashMap<>();
+
+        return buildToken(claims, userDetails, emailVerifyTokenExpiration);
     }
 
     private String buildToken(

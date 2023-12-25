@@ -27,6 +27,7 @@ spring.jpa.defer-datasource-initialization= true
 application.security.jwt.secret-key=SECRET_KEY_BASE64
 application.security.jwt.expiration=86400000
 application.security.jwt.refresh-token.expiration=604800000
+application.security.jwt.email-verify-token.expiration=3600000
 
 # Email config
 spring.mail.host=

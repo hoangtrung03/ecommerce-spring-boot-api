@@ -1,6 +1,7 @@
 package com.example.ecommerce.service.impl;
 
 import com.example.ecommerce.dto.request.AuthRequest;
+import com.example.ecommerce.dto.request.EmailVerifyRequest;
 import com.example.ecommerce.dto.request.RegisterRequest;
 import com.example.ecommerce.dto.response.AuthResponse;
 import com.example.ecommerce.entity.*;
@@ -57,12 +58,17 @@ public class AuthServiceImpl implements AuthService {
                 .userVerifyStatus(UserVerifyStatus.Unverified)
                 .role(new HashSet<>(Collections.singletonList(roleUser)))
                 .build();
-        var savedUser = repository.save(user);
+        // Generate email verification token
+        var emailVerifyToken = jwtService.generateEmailVerifyToken(user);
+        user.setVerificationCode(emailVerifyToken);
+        // Generate JWT token
         var jwtToken = jwtService.generateToken(user);
+        // Generate refresh token
         var refreshToken = jwtService.generateRefreshToken(user);
-        saveUserToken(savedUser, jwtToken);
 
-        user.setVerificationCode(jwtToken);
+        var savedUser = repository.save(user);
+        saveUserToken(savedUser, jwtToken);
+        System.out.printf("emailVerifyToken: %s", emailVerifyToken);
         try {
             sendVerificationEmail(savedUser, "http://localhost:3000");
         } catch (MessagingException | UnsupportedEncodingException e) {
@@ -182,6 +188,36 @@ public class AuthServiceImpl implements AuthService {
         return AuthResponse.builder().message("Refresh token failed").build();
     }
 
+    @Override
+    public AuthResponse verifyEmail(EmailVerifyRequest token) {
+        String verifyToken = token.getEmail_verify_token();
+        String userEmail;
+
+        if (verifyToken == null) {
+            return AuthResponse.builder().message("Invalid access token").build();
+        }
+
+        userEmail = jwtService.extractUsername(verifyToken);
+
+        if (userEmail == null) {
+            return AuthResponse.builder().message("Invalid token").data("").build();
+        }
+
+        User user = repository.findByEmail(userEmail);
+
+        if (user == null) {
+            return AuthResponse.builder().message("User not found").data("").build();
+        }
+
+        if (user.getVerificationCode().equals(verifyToken)) {
+            user.setUserVerifyStatus(UserVerifyStatus.Verified);
+            repository.save(user);
+            return AuthResponse.builder().message("Email verified successfully").data(userEmail).build();
+        }
+
+        return AuthResponse.builder().message("Invalid token").data("").build();
+    }
+
     private void sendVerificationEmail(User user, String siteURL) throws MessagingException, UnsupportedEncodingException {
         int idEmail = (int) (Math.random() * 35421) + user.getId();
         String toAddress = user.getEmail();
@@ -200,7 +236,7 @@ public class AuthServiceImpl implements AuthService {
 
         helper.setText(content, true);
 
-        String verifyURL = siteURL + "/verify?code=" + user.getVerificationCode();
+        String verifyURL = siteURL + "/verify?token=" + user.getVerificationCode();
         content = content.replace("[[URL]]", verifyURL);
 
         mailService.sendNewMail(

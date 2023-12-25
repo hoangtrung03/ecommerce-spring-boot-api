@@ -2,10 +2,7 @@ package com.example.ecommerce.entity;
 
 import com.example.ecommerce.model.UserVerifyStatus;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.core.GrantedAuthority;
@@ -25,6 +22,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Entity
 @Table(name = "ec_user")
+@ToString(exclude = {"tokens", "role"})
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
@@ -84,7 +82,7 @@ public class User implements UserDetails {
 
     private UserVerifyStatus userVerifyStatus;
 
-    @Column(name = "email_verify_token", length = 64)
+    @Column(name = "email_verify_token")
     private String verificationCode;
 
     /**
