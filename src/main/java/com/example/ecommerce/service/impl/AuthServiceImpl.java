@@ -72,7 +72,7 @@ public class AuthServiceImpl implements AuthService {
         saveUserToken(savedUser, jwtToken);
 
         try {
-            sendVerificationEmail(savedUser, siteURL);
+            sendVerificationEmail(savedUser, "http://localhost:3000");
         } catch (MessagingException | UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
