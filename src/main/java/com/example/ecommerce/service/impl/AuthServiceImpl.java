@@ -5,6 +5,7 @@ import com.example.ecommerce.dto.request.EmailVerifyRequest;
 import com.example.ecommerce.dto.request.RegisterRequest;
 import com.example.ecommerce.dto.response.AuthResponse;
 import com.example.ecommerce.entity.*;
+import com.example.ecommerce.model.Messages;
 import com.example.ecommerce.repository.RoleRepository;
 import com.example.ecommerce.repository.TokenRepository;
 import com.example.ecommerce.repository.UserRepository;
@@ -17,6 +18,7 @@ import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -45,7 +47,7 @@ public class AuthServiceImpl implements AuthService {
         var isExistUser = repository.findByEmail(request.getEmail());
 
         if (isExistUser != null) {
-            return AuthResponse.builder().message("User already exist").build();
+            return AuthResponse.builder().message(Messages.USER_ALREADY_EXISTS).build();
         }
 
         Role roleUser = roleRepository.findByName("USER");
@@ -68,15 +70,15 @@ public class AuthServiceImpl implements AuthService {
 
         var savedUser = repository.save(user);
         saveUserToken(savedUser, jwtToken);
-        System.out.printf("emailVerifyToken: %s", emailVerifyToken);
+
         try {
-            sendVerificationEmail(savedUser, "http://localhost:3000");
+            sendVerificationEmail(savedUser, siteURL);
         } catch (MessagingException | UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
 
         return AuthResponse.builder()
-                .message("User registered successfully")
+                .message(Messages.USER_REGISTER_SUCCESS)
                 .data(AuthResponse.AuthTokens.builder()
                         .accessToken(jwtToken)
                         .refreshToken(refreshToken)
@@ -96,7 +98,7 @@ public class AuthServiceImpl implements AuthService {
         User user = repository.findByEmail(request.getEmail());
 
         if (user == null) {
-            return AuthResponse.builder().message("User not found").build();
+            return AuthResponse.builder().message(Messages.USER_NOT_FOUND).build();
         } else {
             String jwtToken = jwtService.generateToken(user);
             String refreshToken = jwtService.generateRefreshToken(user);
@@ -104,7 +106,7 @@ public class AuthServiceImpl implements AuthService {
             saveUserToken(user, jwtToken);
 
             return AuthResponse.builder()
-                    .message("Login successfully")
+                    .message(Messages.LOGIN_SUCCESS)
                     .data(AuthResponse.AuthTokens.builder()
                             .accessToken(jwtToken)
                             .refreshToken(refreshToken)
@@ -157,7 +159,7 @@ public class AuthServiceImpl implements AuthService {
         final String userEmail;
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return AuthResponse.builder().message("Invalid access token").build();
+            return AuthResponse.builder().message(Messages.INVALID_ACCESS_TOKEN).build();
         }
 
         refreshToken = authHeader.substring(7);
@@ -167,7 +169,7 @@ public class AuthServiceImpl implements AuthService {
             var user = this.repository.findByEmail(userEmail);
 
             if (user == null) {
-                return AuthResponse.builder().message("User not found").data("").build();
+                return AuthResponse.builder().message(Messages.USER_NOT_FOUND).data("").build();
             }
 
             if (jwtService.isTokenValid(refreshToken, user)) {
@@ -176,7 +178,7 @@ public class AuthServiceImpl implements AuthService {
                 saveUserToken(user, accessToken);
 
                 return AuthResponse.builder()
-                        .message("Refresh token successfully")
+                        .message(Messages.REFRESH_TOKEN_SUCCESS)
                         .data(AuthResponse.AuthTokens.builder()
                                 .accessToken(accessToken)
                                 .refreshToken(refreshToken)
@@ -185,7 +187,7 @@ public class AuthServiceImpl implements AuthService {
             }
         }
 
-        return AuthResponse.builder().message("Refresh token failed").build();
+        return AuthResponse.builder().message(Messages.REFRESH_TOKEN_FAILED).build();
     }
 
     @Override
@@ -194,28 +196,28 @@ public class AuthServiceImpl implements AuthService {
         String userEmail;
 
         if (verifyToken == null) {
-            return AuthResponse.builder().message("Invalid access token").build();
+            return AuthResponse.builder().message(Messages.INVALID_ACCESS_TOKEN).build();
         }
 
         userEmail = jwtService.extractUsername(verifyToken);
 
         if (userEmail == null) {
-            return AuthResponse.builder().message("Invalid token").data("").build();
+            return AuthResponse.builder().message(Messages.INVALID_TOKEN).data("").build();
         }
 
         User user = repository.findByEmail(userEmail);
 
         if (user == null) {
-            return AuthResponse.builder().message("User not found").data("").build();
+            return AuthResponse.builder().message(Messages.USER_NOT_FOUND).data("").build();
         }
 
         if (user.getVerificationCode().equals(verifyToken)) {
             user.setUserVerifyStatus(UserVerifyStatus.Verified);
             repository.save(user);
-            return AuthResponse.builder().message("Email verified successfully").data(userEmail).build();
+            return AuthResponse.builder().message(Messages.EMAIL_VERIFIED).data(userEmail).build();
         }
 
-        return AuthResponse.builder().message("Invalid token").data("").build();
+        return AuthResponse.builder().message(Messages.INVALID_TOKEN).data("").build();
     }
 
     private void sendVerificationEmail(User user, String siteURL) throws MessagingException, UnsupportedEncodingException {
