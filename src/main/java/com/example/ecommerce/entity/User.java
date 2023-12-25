@@ -84,6 +84,9 @@ public class User implements UserDetails {
 
     private UserVerifyStatus userVerifyStatus;
 
+    @Column(name = "email_verify_token", length = 64)
+    private String verificationCode;
+
     /**
      * Retrieves the collection of granted authorities for this user.
      *

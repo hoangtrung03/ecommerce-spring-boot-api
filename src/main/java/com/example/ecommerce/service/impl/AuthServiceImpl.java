@@ -11,16 +11,20 @@ import com.example.ecommerce.model.UserVerifyStatus;
 import com.example.ecommerce.service.AuthService;
 import com.example.ecommerce.service.JwtService;
 import com.example.ecommerce.service.MailSenderService;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.Collections;
 import java.util.HashSet;
 
@@ -57,10 +61,13 @@ public class AuthServiceImpl implements AuthService {
         var jwtToken = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
         saveUserToken(savedUser, jwtToken);
-        int idEmail = (int) (Math.random() * 35421) + savedUser.getId();
-        mailService.sendNewMail(
-                savedUser.getEmail(), "Activate your account " +savedUser.getEmail() + " with id #" + idEmail,
-                "Click here to activate your account: http://localhost:8080/api/v1/auth/activate/" + savedUser.getId());
+
+        user.setVerificationCode(jwtToken);
+        try {
+            sendVerificationEmail(savedUser, "http://localhost:3000");
+        } catch (MessagingException | UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
 
         return AuthResponse.builder()
                 .message("User registered successfully")
@@ -173,5 +180,33 @@ public class AuthServiceImpl implements AuthService {
         }
 
         return AuthResponse.builder().message("Refresh token failed").build();
+    }
+
+    private void sendVerificationEmail(User user, String siteURL) throws MessagingException, UnsupportedEncodingException {
+        int idEmail = (int) (Math.random() * 35421) + user.getId();
+        String toAddress = user.getEmail();
+        String subject = "Please verify your registration";
+        String content = "Please click the link below to verify your registration:<br>"
+                + "<h3><a href=\"[[URL]]\" target=\"_self\">VERIFY</a></h3>"
+                + "Thank you,<br>"
+                + "Your company name.";
+
+        MimeMessage message = mailService.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+        helper.setFrom("vht03032000@gmail.com", "Ecommerce");
+        helper.setTo(toAddress);
+        helper.setSubject(subject + " - " + idEmail);
+
+        helper.setText(content, true);
+
+        String verifyURL = siteURL + "/verify?code=" + user.getVerificationCode();
+        content = content.replace("[[URL]]", verifyURL);
+
+        mailService.sendNewMail(
+                toAddress,
+                subject + " - " + idEmail,
+                content
+        );
     }
 }
