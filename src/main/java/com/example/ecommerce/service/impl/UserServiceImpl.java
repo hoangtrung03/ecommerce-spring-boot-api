@@ -15,6 +15,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -42,7 +44,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResultWithPaginationResponse<List<UserDetailResponse>> getAllUser(int page, int size, String sortBy, String sortDirection) {
+    public ResponseEntity<ResultWithPaginationResponse<List<UserDetailResponse>>> getAllUser(int page, int size, String sortBy, String sortDirection) {
         Sort.Direction direction = Sort.Direction.ASC;
 
         if (sortDirection != null && sortDirection.equalsIgnoreCase("desc")) {
@@ -59,18 +61,17 @@ public class UserServiceImpl implements UserService {
         PaginationInfo paginationInfo = new PaginationInfo(
                 userPage.getNumber(), userPage.getSize(), userPage.getTotalPages());
 
-        return new ResultWithPaginationResponse<>(
-                StatusCode.SUCCESS,
-                "Get all users success",
-                userDetailResponses,
-                paginationInfo
-        );
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new ResultWithPaginationResponse<>(StatusCode.SUCCESS, "Get all users success", userDetailResponses, paginationInfo));
     }
 
     @Override
-    public ResultResponse<UserDetailResponse> updateUser(User currentUser, UserDetailRequest u) {
-        if(currentUser == null){
-            return new ResultResponse<>(StatusCode.NOT_FOUND, "User not found", null);
+    public ResponseEntity<ResultResponse<UserDetailResponse>> updateUser(User currentUser, UserDetailRequest u) {
+        if (currentUser == null) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(new ResultResponse<>(StatusCode.NOT_FOUND, "User not found", null));
         }
 
         User user = userRepository.findByEmail(currentUser.getEmail());
@@ -86,15 +87,19 @@ public class UserServiceImpl implements UserService {
         user.setAvatar(u.getAvatar());
         userRepository.save(user);
 
-        return new ResultResponse<>(StatusCode.SUCCESS, "Update user success", UserDetailResponse.fromUser(user));
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new ResultResponse<>(StatusCode.SUCCESS, "Update user success", UserDetailResponse.fromUser(user)));
     }
 
     @Override
-    public ResultResponse<UserDetailResponse> updateUserById(Integer id, UserDetailRequest u) {
+    public ResponseEntity<ResultResponse<UserDetailResponse>> updateUserById(Integer id, UserDetailRequest u) {
         Optional<User> user = userRepository.findById(id);
 
-        if (user.isEmpty()){
-            return new ResultResponse<>(StatusCode.NOT_FOUND, "User not found", null);
+        if (user.isEmpty()) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(new ResultResponse<>(StatusCode.NOT_FOUND, "User not found", null));
         }
 
         User userEntity = user.get();
@@ -110,29 +115,37 @@ public class UserServiceImpl implements UserService {
         userEntity.setAvatar(u.getAvatar());
         userRepository.save(userEntity);
 
-        return new ResultResponse<>(StatusCode.SUCCESS, "Update user success", UserDetailResponse.fromUser(userEntity));
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new ResultResponse<>(StatusCode.SUCCESS, "Update user success", UserDetailResponse.fromUser(userEntity)));
     }
 
     @Override
-    public ResultResponse<String> deleteUserById(Integer id) {
+    public ResponseEntity<ResultResponse<String>> deleteUserById(Integer id) {
         Optional<User> user = userRepository.findById(id);
 
-        if (user.isEmpty()){
-            return new ResultResponse<>(StatusCode.NOT_FOUND, "User not found", null);
+        if (user.isEmpty()) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(new ResultResponse<>(StatusCode.NOT_FOUND, "User not found", null));
         }
 
         tokenRepository.deleteTokensByUserId(id);
         userRepository.deleteById(id);
-        return new ResultResponse<>(StatusCode.SUCCESS, "Delete user success", null);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new ResultResponse<>(StatusCode.SUCCESS, "Delete user success", null));
     }
 
     @Override
-    public ResultResponse<String> deleteByMultiIds(List<Integer> ids) {
+    public ResponseEntity<ResultResponse<String>> deleteByMultiIds(List<Integer> ids) {
         for (Integer id : ids) {
             tokenRepository.deleteTokensByUserId(id);
             userRepository.deleteById(id);
         }
 
-        return new ResultResponse<>(StatusCode.SUCCESS, "Delete user success", null);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new ResultResponse<>(StatusCode.SUCCESS, "Delete user success", null));
     }
 }

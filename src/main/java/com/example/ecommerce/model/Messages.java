@@ -17,4 +17,10 @@ public class Messages {
     public static final String ROlE_NOT_FOUND = "Role name cannot be null or empty";
     public static final String ROLE_ASSIGNED = "Role assigned to user successfully";
     public static final String ROLE_REVOKED = "Role revoked from user successfully";
+    public static final String GET_ALL_USERS_SUCCESS = "Get all users success";
+    public static final String EMAIL_TYPE_ALREADY_EXISTS = "Email type already exists";
+    public static final String ADD_EMAIL_SUCCESS = "Add email success";
+    public static final String EMAIL_NOT_FOUND = "Email not found";
+    public static final String UPDATE_EMAIL_SUCCESS = "Update email success";
+    public static final String DELETE_EMAIL_SUCCESS = "Delete email success";
 }

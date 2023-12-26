@@ -15,17 +15,17 @@ public class RoleController {
 
     @PostMapping("/create")
     public ResponseEntity<ResultResponse<Object>> createRole(@RequestBody RoleRequest roleDTO) {
-        return ResponseEntity.ok(roleService.createRole(roleDTO).getBody());
+        return roleService.createRole(roleDTO);
     }
 
     @PutMapping("/assign/{id}")
     public ResponseEntity<ResultResponse<Object>> assignRole(@RequestBody RoleRequest roleDTO, @PathVariable("id") Integer userId) {
-        return ResponseEntity.ok(roleService.assignRole(roleDTO, userId));
+        return roleService.assignRole(roleDTO, userId);
     }
 
     @PutMapping("/revoke/{id}")
     public ResponseEntity<ResultResponse<Object>> revokeRole(@RequestBody RoleRequest roleDTO, @PathVariable("id") Integer userId) {
-        return ResponseEntity.ok(roleService.revokeRole(roleDTO, userId));
+        return roleService.revokeRole(roleDTO, userId);
     }
 
 //    @DeleteMapping("/delete/{id}")

@@ -7,6 +7,7 @@ import com.example.ecommerce.dto.response.ResultResponse;
 import com.example.ecommerce.dto.response.ResultWithPaginationResponse;
 import com.example.ecommerce.entity.Email;
 import com.example.ecommerce.entity.User;
+import com.example.ecommerce.model.Messages;
 import com.example.ecommerce.model.StatusCode;
 import com.example.ecommerce.repository.EmailRepository;
 import com.example.ecommerce.service.EmailService;
@@ -15,6 +16,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,7 +30,7 @@ public class EmailServiceImpl implements EmailService {
 
 
     @Override
-    public ResultWithPaginationResponse<List<Email>> getAllEmail(int page, int size, String sortBy, String sortDirection) {
+    public ResponseEntity<ResultWithPaginationResponse<List<Email>>> getAllEmail(int page, int size, String sortBy, String sortDirection) {
         Sort.Direction direction = Sort.Direction.ASC;
 
         if (sortDirection != null && sortDirection.equalsIgnoreCase("desc")) {
@@ -41,20 +44,24 @@ public class EmailServiceImpl implements EmailService {
 
         PaginationInfo paginationInfo = new PaginationInfo(
                 emailPage.getNumber(), emailPage.getSize(), emailPage.getTotalPages());
-        return new ResultWithPaginationResponse<>(
-                StatusCode.SUCCESS,
-                "Get all users success",
-                emails,
-                paginationInfo
-        );
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new ResultWithPaginationResponse<>(
+                        StatusCode.SUCCESS,
+                        Messages.GET_ALL_USERS_SUCCESS,
+                        emails,
+                        paginationInfo
+                ));
     }
 
     @Override
-    public ResultResponse<Email> addEmail(EmailRequest emailRequest) {
+    public ResponseEntity<ResultResponse<Email>> addEmail(EmailRequest emailRequest) {
         var isExistTypeEmail = emailRepository.findByType(emailRequest.getType());
 
         if (isExistTypeEmail != null) {
-            return new ResultResponse<>(StatusCode.SUCCESS, "Email type already exists", null);
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new ResultResponse<>(StatusCode.SUCCESS, Messages.EMAIL_TYPE_ALREADY_EXISTS, null));
         }
 
         var email = Email
@@ -67,15 +74,19 @@ public class EmailServiceImpl implements EmailService {
 
         Email savedEmail = emailRepository.save(email);
 
-        return new ResultResponse<>(StatusCode.SUCCESS, "Add email success", savedEmail);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new ResultResponse<>(StatusCode.SUCCESS, Messages.ADD_EMAIL_SUCCESS, savedEmail));
     }
 
     @Override
-    public ResultResponse<Email> updateEmailById(Integer id, EmailRequest emailRequest) {
+    public ResponseEntity<ResultResponse<Email>> updateEmailById(Integer id, EmailRequest emailRequest) {
         Optional<Email> optionalEmail = emailRepository.findById(id);
 
         if (optionalEmail.isEmpty()) {
-            return new ResultResponse<>(StatusCode.NOT_FOUND, "Email not found", null);
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(new ResultResponse<>(StatusCode.NOT_FOUND, Messages.EMAIL_NOT_FOUND, null));
         }
 
         Email emailToUpdate = optionalEmail.get();
@@ -86,30 +97,42 @@ public class EmailServiceImpl implements EmailService {
 
         Email updatedEmail = emailRepository.save(emailToUpdate);
 
-        return new ResultResponse<>(StatusCode.SUCCESS, "Update email success", updatedEmail);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new ResultResponse<>(StatusCode.SUCCESS, Messages.UPDATE_EMAIL_SUCCESS, updatedEmail));
     }
 
     @Override
-    public ResultResponse<String> deleteEmailById(Integer id) {
+    public ResponseEntity<ResultResponse<String>> deleteEmailById(Integer id) {
         Optional<Email> optionalEmail = emailRepository.findById(id);
 
         if (optionalEmail.isEmpty()) {
-            return new ResultResponse<>(StatusCode.NOT_FOUND, "Email not found", null);
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(new ResultResponse<>(StatusCode.NOT_FOUND, Messages.EMAIL_NOT_FOUND, null));
         }
 
         emailRepository.deleteById(id);
-        return new ResultResponse<>(StatusCode.SUCCESS, "Delete email success", null);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new ResultResponse<>(StatusCode.SUCCESS, Messages.DELETE_EMAIL_SUCCESS, null));
     }
 
     @Override
-    public ResultResponse<String> deleteByMultiIds(List<Integer> ids) {
+    public ResponseEntity<ResultResponse<String>> deleteByMultiIds(List<Integer> ids) {
         var isExistIds = emailRepository.findAllById(ids);
 
         if (isExistIds.isEmpty()) {
-            return new ResultResponse<>(StatusCode.NOT_FOUND, "Email not found", null);
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(new ResultResponse<>(StatusCode.NOT_FOUND, Messages.EMAIL_NOT_FOUND, null));
         }
 
         emailRepository.deleteAllById(ids);
-        return new ResultResponse<>(StatusCode.SUCCESS, "Delete email success", null);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new ResultResponse<>(StatusCode.SUCCESS, Messages.DELETE_EMAIL_SUCCESS, null));
     }
 }

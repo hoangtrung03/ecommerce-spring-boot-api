@@ -6,6 +6,6 @@ import org.springframework.http.ResponseEntity;
 
 public interface RoleService {
     ResponseEntity<ResultResponse<Object>> createRole(RoleRequest roleDTO);
-    ResultResponse<Object> assignRole(RoleRequest roleDTO, Integer userId);
-    ResultResponse<Object> revokeRole(RoleRequest roleDTO, Integer userId);
+    ResponseEntity<ResultResponse<Object>> assignRole(RoleRequest roleDTO, Integer userId);
+    ResponseEntity<ResultResponse<Object>> revokeRole(RoleRequest roleDTO, Integer userId);
 }

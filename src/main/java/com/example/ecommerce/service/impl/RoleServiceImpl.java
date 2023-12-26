@@ -34,7 +34,7 @@ public class RoleServiceImpl implements RoleService {
         if (roleName == null || roleName.getName() == null || roleName.getName().isEmpty()) {
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
-                    .body(new ResultResponse<Object>(StatusCode.BAD_REQUEST, "Role name cannot be null or empty"));
+                    .body(new ResultResponse<Object>(StatusCode.BAD_REQUEST, Messages.ROlE_NOT_FOUND));
         }
 
         Role role = new Role();
@@ -47,16 +47,20 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public ResultResponse<Object> assignRole(RoleRequest roleDTO, Integer userId) {
+    public ResponseEntity<ResultResponse<Object>> assignRole(RoleRequest roleDTO, Integer userId) {
         Role role = roleRepository.findByName(roleDTO.getName());
         Optional<User> user = userRepository.findById(userId);
 
         if (role == null || role.getName().equals("USER")) {
-            return new ResultResponse<Object>(StatusCode.BAD_REQUEST, Messages.ROlE_NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    new ResultResponse<>(StatusCode.NOT_FOUND, Messages.ROlE_NOT_FOUND)
+            );
         }
 
         if (user.isEmpty()) {
-            return new ResultResponse<Object>(StatusCode.BAD_REQUEST, Messages.USER_NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    new ResultResponse<>(StatusCode.NOT_FOUND, Messages.USER_NOT_FOUND)
+            );
         }
 
         Set<Role> userRoles = user.get().getRole();
@@ -64,20 +68,24 @@ public class RoleServiceImpl implements RoleService {
         user.get().setRole(userRoles);
         userRepository.save(user.get());
 
-        return new ResultResponse<Object>(StatusCode.SUCCESS, Messages.ROLE_ASSIGNED);
+        return ResponseEntity.status(HttpStatus.OK).body(new ResultResponse<>(StatusCode.SUCCESS, Messages.ROLE_ASSIGNED));
     }
 
     @Override
-    public ResultResponse<Object> revokeRole(RoleRequest roleDTO, Integer userId) {
+    public ResponseEntity<ResultResponse<Object>> revokeRole(RoleRequest roleDTO, Integer userId) {
         Role role = roleRepository.findByName(roleDTO.getName());
         Optional<User> user = userRepository.findById(userId);
 
         if (role == null || role.getName().equals("USER")) {
-            return new ResultResponse<Object>(StatusCode.BAD_REQUEST, Messages.ROlE_NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    new ResultResponse<>(StatusCode.NOT_FOUND, Messages.ROlE_NOT_FOUND)
+            );
         }
 
         if (user.isEmpty()) {
-            return new ResultResponse<Object>(StatusCode.BAD_REQUEST, Messages.USER_NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    new ResultResponse<>(StatusCode.NOT_FOUND, Messages.USER_NOT_FOUND)
+            );
         }
 
         Set<Role> userRoles = user.get().getRole();
@@ -85,6 +93,6 @@ public class RoleServiceImpl implements RoleService {
         user.get().setRole(userRoles);
         userRepository.save(user.get());
 
-        return new ResultResponse<Object>(StatusCode.SUCCESS, Messages.ROLE_REVOKED);
+        return ResponseEntity.status(HttpStatus.OK).body(new ResultResponse<>(StatusCode.SUCCESS, Messages.ROLE_REVOKED));
     }
 }
