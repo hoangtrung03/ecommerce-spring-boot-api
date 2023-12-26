@@ -1,11 +1,13 @@
 package com.example.ecommerce.service.impl;
 
+import com.example.ecommerce.dto.request.PasswordRequest;
 import com.example.ecommerce.dto.request.UserDetailRequest;
 import com.example.ecommerce.dto.response.PaginationInfo;
 import com.example.ecommerce.dto.response.ResultResponse;
 import com.example.ecommerce.dto.response.ResultWithPaginationResponse;
 import com.example.ecommerce.dto.response.UserDetailResponse;
 import com.example.ecommerce.entity.User;
+import com.example.ecommerce.model.Messages;
 import com.example.ecommerce.model.StatusCode;
 import com.example.ecommerce.repository.TokenRepository;
 import com.example.ecommerce.repository.UserRepository;
@@ -19,9 +21,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -31,6 +33,7 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final TokenRepository tokenRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public UserDetails loadUserByUsername(String email) {
@@ -147,5 +150,22 @@ public class UserServiceImpl implements UserService {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(new ResultResponse<>(StatusCode.SUCCESS, "Delete user success", null));
+    }
+
+    @Override
+    public ResponseEntity<ResultResponse<String>> changePassword(User currentUser, PasswordRequest user) {
+        if (currentUser == null) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(new ResultResponse<>(StatusCode.NOT_FOUND, Messages.USER_NOT_FOUND, null));
+        }
+
+        User userEntity = userRepository.findByEmail(currentUser.getEmail());
+        userEntity.setPassword(passwordEncoder.encode(user.getPassword()));
+        userRepository.save(userEntity);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new ResultResponse<>(StatusCode.SUCCESS, Messages.CHANGE_PASSWORD_SUCCESS, currentUser.getEmail()));
     }
 }

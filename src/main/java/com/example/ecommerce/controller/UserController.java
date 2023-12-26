@@ -1,5 +1,6 @@
 package com.example.ecommerce.controller;
 
+import com.example.ecommerce.dto.request.PasswordRequest;
 import com.example.ecommerce.dto.request.UserDetailRequest;
 import com.example.ecommerce.dto.response.ResultResponse;
 import com.example.ecommerce.dto.response.ResultWithPaginationResponse;
@@ -70,5 +71,12 @@ public class UserController {
             @RequestParam("ids") List<Integer> ids
     ) {
         return userService.deleteByMultiIds(ids);
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<ResultResponse<String>> changePassword(
+            @AuthenticationPrincipal User currentUser, @Valid @RequestBody PasswordRequest user
+    ) {
+        return userService.changePassword(currentUser, user);
     }
 }
