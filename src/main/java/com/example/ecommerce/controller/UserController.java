@@ -1,5 +1,6 @@
 package com.example.ecommerce.controller;
 
+import com.example.ecommerce.dto.request.ForgotPasswordRequest;
 import com.example.ecommerce.dto.request.PasswordRequest;
 import com.example.ecommerce.dto.request.UserDetailRequest;
 import com.example.ecommerce.dto.response.ResultResponse;
@@ -78,5 +79,12 @@ public class UserController {
             @AuthenticationPrincipal User currentUser, @Valid @RequestBody PasswordRequest user
     ) {
         return userService.changePassword(currentUser, user);
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ResultResponse<String>> forgotPassword(
+            @RequestBody @Valid ForgotPasswordRequest email
+    ) {
+        return userService.forgotPassword(email);
     }
 }

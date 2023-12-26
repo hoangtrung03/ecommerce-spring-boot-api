@@ -15,6 +15,7 @@ public class Messages {
     public static final String REFRESH_TOKEN_FAILED = "Refresh token failed";
     public static final String GET_ALL_USERS_SUCCESS = "Get all users success";
     public static final String CHANGE_PASSWORD_SUCCESS = "Change password success";
+    public static final String FORGOT_PASSWORD_SUCCESS = "Forgot password success";
 
     // Email messages
     public static final String EMAIL_VERIFIED = "Email verified successfully";

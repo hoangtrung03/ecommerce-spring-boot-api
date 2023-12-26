@@ -1,16 +1,17 @@
 package com.example.ecommerce.service.impl;
 
 import com.example.ecommerce.dto.request.EmailRequest;
-import com.example.ecommerce.dto.response.AuthResponse;
 import com.example.ecommerce.dto.response.PaginationInfo;
 import com.example.ecommerce.dto.response.ResultResponse;
 import com.example.ecommerce.dto.response.ResultWithPaginationResponse;
 import com.example.ecommerce.entity.Email;
-import com.example.ecommerce.entity.User;
 import com.example.ecommerce.model.Messages;
 import com.example.ecommerce.model.StatusCode;
 import com.example.ecommerce.repository.EmailRepository;
 import com.example.ecommerce.service.EmailService;
+import com.example.ecommerce.service.MailSenderService;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,8 +19,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,7 +30,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class EmailServiceImpl implements EmailService {
     private final EmailRepository emailRepository;
-
+    private final MailSenderService mailSender;
 
     @Override
     public ResponseEntity<ResultWithPaginationResponse<List<Email>>> getAllEmail(int page, int size, String sortBy, String sortDirection) {
@@ -134,5 +137,18 @@ public class EmailServiceImpl implements EmailService {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(new ResultResponse<>(StatusCode.SUCCESS, Messages.DELETE_EMAIL_SUCCESS, null));
+    }
+
+    @Override
+    public void sendVerificationEmail(String fromAddress, String fromName, String toAddress, String subject, String content) throws MessagingException, UnsupportedEncodingException {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+        helper.setFrom(fromAddress, fromName);
+        helper.setTo(toAddress);
+        helper.setSubject(subject);
+        helper.setText(content, true);
+
+        mailSender.sendNewMail(toAddress, subject, content);
     }
 }

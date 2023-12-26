@@ -4,23 +4,23 @@ import com.example.ecommerce.dto.request.AuthRequest;
 import com.example.ecommerce.dto.request.EmailVerifyRequest;
 import com.example.ecommerce.dto.request.RegisterRequest;
 import com.example.ecommerce.dto.response.AuthResponse;
-import com.example.ecommerce.entity.*;
+import com.example.ecommerce.entity.Role;
+import com.example.ecommerce.entity.Token;
+import com.example.ecommerce.entity.TokenType;
+import com.example.ecommerce.entity.User;
 import com.example.ecommerce.model.Messages;
+import com.example.ecommerce.model.UserVerifyStatus;
 import com.example.ecommerce.repository.RoleRepository;
 import com.example.ecommerce.repository.TokenRepository;
 import com.example.ecommerce.repository.UserRepository;
-import com.example.ecommerce.model.UserVerifyStatus;
 import com.example.ecommerce.service.AuthService;
 import com.example.ecommerce.service.JwtService;
 import com.example.ecommerce.service.MailSenderService;
 import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -40,7 +40,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final RoleRepository roleRepository;
-    private final MailSenderService mailService;
+    private final EmailServiceImpl emailService;
 
     @Override
     public AuthResponse register(RegisterRequest request) {
@@ -223,28 +223,14 @@ public class AuthServiceImpl implements AuthService {
     private void sendVerificationEmail(User user, String siteURL) throws MessagingException, UnsupportedEncodingException {
         int idEmail = (int) (Math.random() * 35421) + user.getId();
         String toAddress = user.getEmail();
-        String subject = "Please verify your registration";
+        String subject = "Please verify your registration" + " - " + idEmail;
         String content = "Please click the link below to verify your registration:<br>"
                 + "<h3><a href=\"[[URL]]\" target=\"_self\">VERIFY</a></h3>"
                 + "Thank you,<br>"
                 + "Your company name.";
-
-        MimeMessage message = mailService.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
-
-        helper.setFrom("vht03032000@gmail.com", "Ecommerce");
-        helper.setTo(toAddress);
-        helper.setSubject(subject + " - " + idEmail);
-
-        helper.setText(content, true);
-
         String verifyURL = siteURL + "/verify?token=" + user.getVerificationCode();
         content = content.replace("[[URL]]", verifyURL);
 
-        mailService.sendNewMail(
-                toAddress,
-                subject + " - " + idEmail,
-                content
-        );
+        emailService.sendVerificationEmail("vht03032000@gmail.com", "Ecommerce", toAddress, subject, content);
     }
 }

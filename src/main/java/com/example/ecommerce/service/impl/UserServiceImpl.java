@@ -1,5 +1,6 @@
 package com.example.ecommerce.service.impl;
 
+import com.example.ecommerce.dto.request.ForgotPasswordRequest;
 import com.example.ecommerce.dto.request.PasswordRequest;
 import com.example.ecommerce.dto.request.UserDetailRequest;
 import com.example.ecommerce.dto.response.PaginationInfo;
@@ -12,6 +13,8 @@ import com.example.ecommerce.model.StatusCode;
 import com.example.ecommerce.repository.TokenRepository;
 import com.example.ecommerce.repository.UserRepository;
 import com.example.ecommerce.service.UserService;
+import com.example.ecommerce.utils.PasswordUtils;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,6 +27,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -34,6 +38,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final TokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailServiceImpl emailService;
 
     @Override
     public UserDetails loadUserByUsername(String email) {
@@ -167,5 +172,39 @@ public class UserServiceImpl implements UserService {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(new ResultResponse<>(StatusCode.SUCCESS, Messages.CHANGE_PASSWORD_SUCCESS, currentUser.getEmail()));
+    }
+
+    @Override
+    public ResponseEntity<ResultResponse<String>> forgotPassword(ForgotPasswordRequest email) {
+        User user = userRepository.findByEmail(email.getEmail());
+
+        if (user == null) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(new ResultResponse<>(StatusCode.NOT_FOUND, Messages.USER_NOT_FOUND, null));
+        }
+
+        int idEmail = (int) (Math.random() * 35421) + user.getId();
+        String toAddress = user.getEmail();
+        String subject = "Forgot password " + " - " + idEmail;
+        String password = PasswordUtils.generatePassword();
+        String content =
+                "A new password has been generated:<br>"
+                + "Password: " + password + "<br>"
+                + "Thank you,<br>"
+                + "Your company name.";
+
+        try {
+            emailService.sendVerificationEmail("vht03032000@gmail.com", "Ecommerce", toAddress, subject, content);
+        } catch (MessagingException | UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+
+        user.setPassword(passwordEncoder.encode(password));
+        userRepository.save(user);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new ResultResponse<>(StatusCode.SUCCESS, Messages.FORGOT_PASSWORD_SUCCESS, null));
     }
 }

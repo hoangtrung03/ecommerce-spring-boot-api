@@ -1,5 +1,6 @@
 package com.example.ecommerce.service;
 
+import com.example.ecommerce.dto.request.ForgotPasswordRequest;
 import com.example.ecommerce.dto.request.PasswordRequest;
 import com.example.ecommerce.dto.request.UserDetailRequest;
 import com.example.ecommerce.dto.response.ResultResponse;
@@ -19,4 +20,5 @@ public interface UserService {
     ResponseEntity<ResultResponse<String>> deleteUserById(Integer id);
     ResponseEntity<ResultResponse<String>> deleteByMultiIds(List<Integer> ids);
     ResponseEntity<ResultResponse<String>> changePassword(User currentUser, PasswordRequest user);
+    ResponseEntity<ResultResponse<String>> forgotPassword(ForgotPasswordRequest email);
 }
