@@ -5,10 +5,7 @@ import com.example.ecommerce.dto.response.ResultResponse;
 import com.example.ecommerce.service.impl.RoleServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/role")
@@ -18,8 +15,21 @@ public class RoleController {
 
     @PostMapping("/create")
     public ResponseEntity<ResultResponse<Object>> createRole(@RequestBody RoleRequest roleDTO) {
-
         return ResponseEntity.ok(roleService.createRole(roleDTO).getBody());
     }
 
+    @PutMapping("/assign/{id}")
+    public ResponseEntity<ResultResponse<Object>> assignRole(@RequestBody RoleRequest roleDTO, @PathVariable("id") Integer userId) {
+        return ResponseEntity.ok(roleService.assignRole(roleDTO, userId));
+    }
+
+    @PutMapping("/revoke/{id}")
+    public ResponseEntity<ResultResponse<Object>> revokeRole(@RequestBody RoleRequest roleDTO, @PathVariable("id") Integer userId) {
+        return ResponseEntity.ok(roleService.revokeRole(roleDTO, userId));
+    }
+
+//    @DeleteMapping("/delete/{id}")
+//    public ResponseEntity<ResultResponse<Object>> deleteRole(@PathVariable("id") Integer roleId) {
+//        return ResponseEntity.ok(roleService.deleteRole(roleId).getBody());
+//    }
 }
