@@ -15,7 +15,6 @@ import com.example.ecommerce.repository.TokenRepository;
 import com.example.ecommerce.repository.UserRepository;
 import com.example.ecommerce.service.AuthService;
 import com.example.ecommerce.service.JwtService;
-import com.example.ecommerce.service.MailSenderService;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
