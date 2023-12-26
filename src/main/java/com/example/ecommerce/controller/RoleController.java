@@ -3,6 +3,7 @@ package com.example.ecommerce.controller;
 import com.example.ecommerce.dto.request.RoleRequest;
 import com.example.ecommerce.dto.response.ResultResponse;
 import com.example.ecommerce.service.impl.RoleServiceImpl;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,22 +15,27 @@ public class RoleController {
     private final RoleServiceImpl roleService;
 
     @PostMapping("/create")
-    public ResponseEntity<ResultResponse<Object>> createRole(@RequestBody RoleRequest roleDTO) {
+    public ResponseEntity<ResultResponse<Object>> createRole(@RequestBody @Valid RoleRequest roleDTO) {
         return roleService.createRole(roleDTO);
     }
 
     @PutMapping("/assign/{id}")
-    public ResponseEntity<ResultResponse<Object>> assignRole(@RequestBody RoleRequest roleDTO, @PathVariable("id") Integer userId) {
+    public ResponseEntity<ResultResponse<Object>> assignRole(@RequestBody @Valid RoleRequest roleDTO, @PathVariable("id") Integer userId) {
         return roleService.assignRole(roleDTO, userId);
     }
 
     @PutMapping("/revoke/{id}")
-    public ResponseEntity<ResultResponse<Object>> revokeRole(@RequestBody RoleRequest roleDTO, @PathVariable("id") Integer userId) {
+    public ResponseEntity<ResultResponse<Object>> revokeRole(@RequestBody @Valid RoleRequest roleDTO, @PathVariable("id") Integer userId) {
         return roleService.revokeRole(roleDTO, userId);
     }
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<ResultResponse<Object>> deleteRole(@PathVariable("id") Integer roleId) {
         return ResponseEntity.ok(roleService.deleteRole(roleId).getBody());
+    }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<ResultResponse<Object>> updateRole(@PathVariable("id") Integer id, @RequestBody @Valid RoleRequest roleDTO) {
+        return roleService.updateRole(id, roleDTO);
     }
 }

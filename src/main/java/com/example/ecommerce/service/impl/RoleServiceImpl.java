@@ -126,4 +126,34 @@ public class RoleServiceImpl implements RoleService {
 
         return ResponseEntity.status(HttpStatus.OK).body(new ResultResponse<>(StatusCode.SUCCESS, Messages.ROLE_DELETED));
     }
+
+    @Override
+    public ResponseEntity<ResultResponse<Object>> updateRole(Integer id, RoleRequest roleDTO) {
+        Role role = roleRepository.findById(id).orElse(null);
+
+        if (role == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    new ResultResponse<>(StatusCode.NOT_FOUND, Messages.ROlE_NOT_FOUND)
+            );
+        }
+
+        if (role.getName().equals("USER")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                    new ResultResponse<>(StatusCode.BAD_REQUEST, Messages.ROLE_NOT_UPDATABLE)
+            );
+        }
+
+        if (roleRepository.findByName(roleDTO.getName()) != null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                    new ResultResponse<>(StatusCode.BAD_REQUEST, Messages.ROLE_ALREADY_EXISTS)
+            );
+        }
+
+        role.setName(roleDTO.getName());
+        roleRepository.save(role);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new ResultResponse<>(StatusCode.SUCCESS, Messages.ROLE_UPDATED));
+    }
 }
