@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -94,5 +95,35 @@ public class RoleServiceImpl implements RoleService {
         userRepository.save(user.get());
 
         return ResponseEntity.status(HttpStatus.OK).body(new ResultResponse<>(StatusCode.SUCCESS, Messages.ROLE_REVOKED));
+    }
+
+    @Override
+    public ResponseEntity<ResultResponse<Object>> deleteRole(Integer roleId) {
+        Role role = roleRepository.findById(roleId).orElse(null);
+
+        if (role == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    new ResultResponse<>(StatusCode.NOT_FOUND, Messages.ROlE_NOT_FOUND)
+            );
+        }
+
+        if (role.getName().equals("USER")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                    new ResultResponse<>(StatusCode.BAD_REQUEST, Messages.ROLE_NOT_DELETABLE)
+            );
+        }
+
+        List<User> usersWithRole = userRepository.findByRole(role);
+
+        for (User user : usersWithRole) {
+            Set<Role> userRoles = user.getRole();
+            userRoles.remove(role);
+            user.setRole(userRoles);
+            userRepository.save(user);
+        }
+
+        roleRepository.deleteById(roleId);
+
+        return ResponseEntity.status(HttpStatus.OK).body(new ResultResponse<>(StatusCode.SUCCESS, Messages.ROLE_DELETED));
     }
 }

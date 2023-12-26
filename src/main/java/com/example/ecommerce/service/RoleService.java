@@ -8,4 +8,5 @@ public interface RoleService {
     ResponseEntity<ResultResponse<Object>> createRole(RoleRequest roleDTO);
     ResponseEntity<ResultResponse<Object>> assignRole(RoleRequest roleDTO, Integer userId);
     ResponseEntity<ResultResponse<Object>> revokeRole(RoleRequest roleDTO, Integer userId);
+    ResponseEntity<ResultResponse<Object>> deleteRole(Integer roleId);
 }

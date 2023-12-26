@@ -23,4 +23,6 @@ public class Messages {
     public static final String EMAIL_NOT_FOUND = "Email not found";
     public static final String UPDATE_EMAIL_SUCCESS = "Update email success";
     public static final String DELETE_EMAIL_SUCCESS = "Delete email success";
+    public static final String ROLE_DELETED = "Role deleted successfully";
+    public static final String ROLE_NOT_DELETABLE = "Role is not deletable";
 }

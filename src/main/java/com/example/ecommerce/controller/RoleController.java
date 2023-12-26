@@ -28,8 +28,8 @@ public class RoleController {
         return roleService.revokeRole(roleDTO, userId);
     }
 
-//    @DeleteMapping("/delete/{id}")
-//    public ResponseEntity<ResultResponse<Object>> deleteRole(@PathVariable("id") Integer roleId) {
-//        return ResponseEntity.ok(roleService.deleteRole(roleId).getBody());
-//    }
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<ResultResponse<Object>> deleteRole(@PathVariable("id") Integer roleId) {
+        return ResponseEntity.ok(roleService.deleteRole(roleId).getBody());
+    }
 }
