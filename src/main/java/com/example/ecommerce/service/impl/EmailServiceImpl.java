@@ -58,6 +58,15 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
+    public ResponseEntity<ResultResponse<Email>> getEmailById(Integer id) {
+        Optional<Email> optionalEmail = emailRepository.findById(id);
+
+        return optionalEmail.map(email -> ResponseEntity.status(HttpStatus.OK).body(new ResultResponse<>(StatusCode.SUCCESS, Messages.GET_EMAIL_SUCCESS, email))).orElseGet(() -> ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ResultResponse<>(StatusCode.NOT_FOUND, Messages.EMAIL_NOT_FOUND, null)));
+    }
+
+    @Override
     public ResponseEntity<ResultResponse<Email>> addEmail(EmailRequest emailRequest) {
         var isExistTypeEmail = emailRepository.findByType(emailRequest.getType());
 

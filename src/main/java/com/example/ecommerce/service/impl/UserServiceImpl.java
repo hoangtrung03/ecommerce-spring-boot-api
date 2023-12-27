@@ -71,7 +71,7 @@ public class UserServiceImpl implements UserService {
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(new ResultWithPaginationResponse<>(StatusCode.SUCCESS, "Get all users success", userDetailResponses, paginationInfo));
+                .body(new ResultWithPaginationResponse<>(StatusCode.SUCCESS, Messages.GET_ALL_USERS_SUCCESS, userDetailResponses, paginationInfo));
     }
 
     @Override
@@ -79,7 +79,7 @@ public class UserServiceImpl implements UserService {
         if (currentUser == null) {
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
-                    .body(new ResultResponse<>(StatusCode.NOT_FOUND, "User not found", null));
+                    .body(new ResultResponse<>(StatusCode.NOT_FOUND, Messages.USER_NOT_FOUND, null));
         }
 
         User user = userRepository.findByEmail(currentUser.getEmail());
@@ -97,7 +97,7 @@ public class UserServiceImpl implements UserService {
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(new ResultResponse<>(StatusCode.SUCCESS, "Update user success", UserDetailResponse.fromUser(user)));
+                .body(new ResultResponse<>(StatusCode.SUCCESS, Messages.UPDATE_USER_SUCCESS, UserDetailResponse.fromUser(user)));
     }
 
     @Override
@@ -107,7 +107,7 @@ public class UserServiceImpl implements UserService {
         if (user.isEmpty()) {
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
-                    .body(new ResultResponse<>(StatusCode.NOT_FOUND, "User not found", null));
+                    .body(new ResultResponse<>(StatusCode.NOT_FOUND, Messages.USER_NOT_FOUND, null));
         }
 
         User userEntity = user.get();
@@ -125,7 +125,7 @@ public class UserServiceImpl implements UserService {
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(new ResultResponse<>(StatusCode.SUCCESS, "Update user success", UserDetailResponse.fromUser(userEntity)));
+                .body(new ResultResponse<>(StatusCode.SUCCESS, Messages.UPDATE_USER_SUCCESS, UserDetailResponse.fromUser(userEntity)));
     }
 
     @Override
@@ -135,14 +135,14 @@ public class UserServiceImpl implements UserService {
         if (user.isEmpty()) {
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
-                    .body(new ResultResponse<>(StatusCode.NOT_FOUND, "User not found", null));
+                    .body(new ResultResponse<>(StatusCode.NOT_FOUND, Messages.USER_NOT_FOUND, null));
         }
 
         tokenRepository.deleteTokensByUserId(id);
         userRepository.deleteById(id);
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(new ResultResponse<>(StatusCode.SUCCESS, "Delete user success", null));
+                .body(new ResultResponse<>(StatusCode.SUCCESS, Messages.DELETE_USER_SUCCESS, null));
     }
 
     @Override
@@ -154,7 +154,7 @@ public class UserServiceImpl implements UserService {
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(new ResultResponse<>(StatusCode.SUCCESS, "Delete user success", null));
+                .body(new ResultResponse<>(StatusCode.SUCCESS, Messages.DELETE_USER_SUCCESS, null));
     }
 
     @Override

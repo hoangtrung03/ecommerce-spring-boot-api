@@ -6,6 +6,8 @@ import lombok.Data;
 public class Messages {
     //  User messages
     public static final String USER_NOT_FOUND = "User not found";
+    public static final String UPDATE_USER_SUCCESS = "Update user success";
+    public static final String DELETE_USER_SUCCESS = "Delete user success";
     public static final String USER_ALREADY_EXISTS = "User already exists";
     public static final String USER_REGISTER_SUCCESS = "User registered successfully";
     public static final String LOGIN_SUCCESS = "Login successfully";
@@ -18,6 +20,7 @@ public class Messages {
     public static final String FORGOT_PASSWORD_SUCCESS = "Forgot password success";
 
     // Email messages
+    public static final String GET_EMAIL_SUCCESS = "Get emails success";
     public static final String EMAIL_VERIFIED = "Email verified successfully";
     public static final String EMAIL_TYPE_ALREADY_EXISTS = "Email type already exists";
     public static final String ADD_EMAIL_SUCCESS = "Add email success";
@@ -26,6 +29,8 @@ public class Messages {
     public static final String DELETE_EMAIL_SUCCESS = "Delete email success";
 
     // Role messages
+    public static final String GET_ALL_ROLE_SUCCESS = "Get all roles success";
+    public static final String GET_ROLE_SUCCESS = "Get role success";
     public static final String ROLE_CREATED = "Role created successfully";
     public static final String ROlE_NOT_FOUND = "Role name cannot be null or empty";
     public static final String ROLE_ASSIGNED = "Role assigned to user successfully";

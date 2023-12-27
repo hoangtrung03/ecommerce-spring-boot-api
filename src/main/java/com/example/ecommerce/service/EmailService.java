@@ -12,6 +12,7 @@ import java.util.List;
 
 public interface EmailService {
     ResponseEntity<ResultWithPaginationResponse<List<Email>>> getAllEmail(int page, int size, String sortBy, String sortDirection);
+    ResponseEntity<ResultResponse<Email>> getEmailById(Integer id);
     ResponseEntity<ResultResponse<Email>> addEmail(EmailRequest email);
     ResponseEntity<ResultResponse<Email>> updateEmailById(Integer id,EmailRequest email);
     ResponseEntity<ResultResponse<String>> deleteEmailById(Integer id);

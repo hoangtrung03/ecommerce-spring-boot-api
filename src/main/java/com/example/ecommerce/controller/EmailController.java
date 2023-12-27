@@ -28,6 +28,11 @@ public class EmailController {
         return emailService.getAllEmail(page, size, sortBy, sortDirection);
     }
 
+    @GetMapping("/get/{id}")
+    public ResponseEntity<ResultResponse<Email>> getEmailById(@PathVariable("id") Integer id) {
+        return emailService.getEmailById(id);
+    }
+
     @PostMapping("/add")
     public ResponseEntity<ResultResponse<Email>> addEmail(@Valid @RequestBody EmailRequest email) {
         return emailService.addEmail(email);
