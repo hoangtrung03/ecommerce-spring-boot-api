@@ -70,11 +70,11 @@ public class AuthServiceImpl implements AuthService {
         var savedUser = repository.save(user);
         saveUserToken(savedUser, jwtToken);
 
-//        try {
-//            sendVerificationEmail(savedUser, "http://localhost:3000");
-//        } catch (MessagingException | UnsupportedEncodingException e) {
-//            throw new RuntimeException(e);
-//        }
+        try {
+            sendVerificationEmail(savedUser, "http://localhost:3000");
+        } catch (MessagingException | UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
 
         return AuthResponse.builder()
                 .message(Messages.USER_REGISTER_SUCCESS)
@@ -222,9 +222,9 @@ public class AuthServiceImpl implements AuthService {
     private void sendVerificationEmail(User user, String siteURL) throws MessagingException, UnsupportedEncodingException {
         int idEmail = (int) (Math.random() * 35421) + user.getId();
         String toAddress = user.getEmail();
-        String subject = "Please verify your registration" + " - " + idEmail;
+        String subject = "Please verify your registration " + "#" + idEmail;
         String content = "Please click the link below to verify your registration:<br>"
-                + "<h3><a href=\"[[URL]]\" target=\"_self\">VERIFY</a></h3>"
+                + "<h3><a href=\"[[URL]]\" target=\"_self\" style=\"text-decoration: none; font-size: 18px; color: #E60000;\">VERIFY</a></h3>"
                 + "Thank you,<br>"
                 + "Your company name.";
         String verifyURL = siteURL + "/verify?token=" + user.getVerificationCode();
