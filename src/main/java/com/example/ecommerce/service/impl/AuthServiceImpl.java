@@ -70,11 +70,11 @@ public class AuthServiceImpl implements AuthService {
         var savedUser = repository.save(user);
         saveUserToken(savedUser, jwtToken);
 
-        try {
-            sendVerificationEmail(savedUser, "http://localhost:3000");
-        } catch (MessagingException | UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
+//        try {
+//            sendVerificationEmail(savedUser, "http://localhost:3000");
+//        } catch (MessagingException | UnsupportedEncodingException e) {
+//            throw new RuntimeException(e);
+//        }
 
         return AuthResponse.builder()
                 .message(Messages.USER_REGISTER_SUCCESS)
