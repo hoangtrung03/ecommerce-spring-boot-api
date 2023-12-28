@@ -19,13 +19,13 @@ import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Collections;
 import java.util.HashSet;
@@ -40,6 +40,10 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final RoleRepository roleRepository;
     private final EmailServiceImpl emailService;
+    @Value("${application.security.jwt.expiration}")
+    private long jwtExpiration;
+    @Value("${application.security.jwt.refresh-token.expiration}")
+    private long refreshExpiration;
 
     @Override
     public AuthResponse register(RegisterRequest request) {
@@ -81,6 +85,8 @@ public class AuthServiceImpl implements AuthService {
                 .data(AuthResponse.AuthTokens.builder()
                         .accessToken(jwtToken)
                         .refreshToken(refreshToken)
+                        .expiresAccessTokenIn(jwtService.getAccessTokenExpiration())
+                        .expiresRefreshTokenIn(jwtService.getRefreshTokenExpiration())
                         .build())
                 .build();
     }
@@ -109,6 +115,8 @@ public class AuthServiceImpl implements AuthService {
                     .data(AuthResponse.AuthTokens.builder()
                             .accessToken(jwtToken)
                             .refreshToken(refreshToken)
+                            .expiresAccessTokenIn(jwtService.getAccessTokenExpiration())
+                            .expiresRefreshTokenIn(jwtService.getRefreshTokenExpiration())
                             .build())
                     .build();
         }
@@ -152,7 +160,7 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponse refreshToken(
             HttpServletRequest request,
             HttpServletResponse response
-    ) throws IOException {
+    ) {
         final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         final String refreshToken;
         final String userEmail;

@@ -91,6 +91,14 @@ public class JwtServiceImpl implements JwtService {
         return extractClaim(token, Claims::getExpiration);
     }
 
+    public long getAccessTokenExpiration() {
+        return jwtExpiration;
+    }
+
+    public long getRefreshTokenExpiration() {
+        return refreshExpiration;
+    }
+
     private Claims extractAllClaims(String token) {
         return Jwts
                 .parserBuilder()

@@ -24,5 +24,9 @@ public class AuthResponse {
         private String accessToken;
         @JsonProperty("refresh_token")
         private String refreshToken;
+        @JsonProperty("access_token_expires_in")
+        private long expiresAccessTokenIn;
+        @JsonProperty("refresh_token_expires_in")
+        private long expiresRefreshTokenIn;
     }
 }
