@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -50,5 +51,12 @@ public class UserDetailResponse {
                 user.getBio(),
                 roleDTOs
         );
+    }
+
+    public void setRoles(List<String> userRoles) {
+        roles = userRoles
+                .stream()
+                .map(role -> new RoleResponse(null, role))
+                .collect(Collectors.toSet());
     }
 }

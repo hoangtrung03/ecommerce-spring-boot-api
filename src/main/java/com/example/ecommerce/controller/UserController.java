@@ -87,4 +87,15 @@ public class UserController {
     ) {
         return userService.forgotPassword(email);
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<ResultWithPaginationResponse<List<UserDetailResponse>>> searchUser(
+            @RequestParam("search") String keyword,
+            @RequestParam(name = "page", defaultValue = "1") Integer page,
+            @RequestParam(name = "per_page", defaultValue = "10") Integer size,
+            @RequestParam(name = "sort_by", defaultValue = "createdAt") String sortBy,
+            @RequestParam(name = "sort_direction", required = false) String sortDirection
+    ) {
+        return userService.searchUser(keyword, page, size, sortBy, sortDirection);
+    }
 }

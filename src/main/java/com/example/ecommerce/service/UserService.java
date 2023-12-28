@@ -21,4 +21,5 @@ public interface UserService {
     ResponseEntity<ResultResponse<String>> deleteByMultiIds(List<Integer> ids);
     ResponseEntity<ResultResponse<String>> changePassword(User currentUser, PasswordRequest user);
     ResponseEntity<ResultResponse<String>> forgotPassword(ForgotPasswordRequest email);
+    ResponseEntity<ResultWithPaginationResponse<List<UserDetailResponse>>> searchUser(String keyword,Integer page, Integer size, String sortBy, String sortDirection);
 }

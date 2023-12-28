@@ -82,6 +82,14 @@ public class RoleServiceImpl implements RoleService {
         }
 
         Role role = new Role();
+        Role isExistRole = roleRepository.findByName(roleName.getName());
+
+        if (isExistRole != null) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new ResultResponse<Object>(StatusCode.BAD_REQUEST, Messages.ROLE_ALREADY_EXISTS));
+        }
+
         role.setName(roleName.getName());
         roleRepository.save(role);
 

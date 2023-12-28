@@ -9,13 +9,14 @@ public class Messages {
     public static final String UPDATE_USER_SUCCESS = "Update user success";
     public static final String DELETE_USER_SUCCESS = "Delete user success";
     public static final String USER_ALREADY_EXISTS = "User already exists";
+    public static final String GET_ALL_USERS_SUCCESS = "Get all users success";
     public static final String USER_REGISTER_SUCCESS = "User registered successfully";
+    public static final String SEARCH_SUCCESS = "Search success";
     public static final String LOGIN_SUCCESS = "Login successfully";
     public static final String INVALID_TOKEN = "Invalid token";
     public static final String INVALID_ACCESS_TOKEN = "Invalid access token";
     public static final String REFRESH_TOKEN_SUCCESS = "Refresh token successfully";
     public static final String REFRESH_TOKEN_FAILED = "Refresh token failed";
-    public static final String GET_ALL_USERS_SUCCESS = "Get all users success";
     public static final String CHANGE_PASSWORD_SUCCESS = "Change password success";
     public static final String FORGOT_PASSWORD_SUCCESS = "Forgot password success";
 
