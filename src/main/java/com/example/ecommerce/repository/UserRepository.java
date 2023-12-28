@@ -16,8 +16,8 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     User findByEmail(String email);
     List<User> findByRole(Role role);
     @Query("SELECT u FROM User u WHERE CAST(u.id AS string) LIKE %:query% " +
-        "OR u.email LIKE %:query% " +
-        "OR u.firstname LIKE %:query%" +
-        "OR u.lastname LIKE %:query%")
+            "OR u.email LIKE %:query% " +
+            "OR u.firstname LIKE %:query% " +
+            "OR u.lastname LIKE %:query%")
     Page<User> search(@Param("query") String query, Pageable pageable);
 }
