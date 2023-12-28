@@ -1,8 +1,12 @@
 package com.example.ecommerce.config;
 
+import com.example.ecommerce.dto.response.ResultResponse;
+import com.example.ecommerce.repository.TokenRepository;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -11,11 +15,11 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.io.IOException;
 import java.util.List;
 
 import static com.example.ecommerce.entity.Permission.*;
@@ -46,7 +50,7 @@ public class SecurityConfiguration {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
-    private final LogoutHandler logoutHandler;
+    private final TokenRepository tokenRepository;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -70,12 +74,50 @@ public class SecurityConfiguration {
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .logout(logout ->
                         logout.logoutUrl("/api/v1/auth/logout")
-                                .addLogoutHandler(logoutHandler)
-                                .logoutSuccessHandler((request, response, authentication) -> SecurityContextHolder.clearContext())
+                                .logoutSuccessHandler((request, response, authentication) -> {
+                                    final String authHeader = request.getHeader("Authorization");
+
+                                    if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                                        sendLogoutResponse(response, "Logout failed", HttpStatus.UNAUTHORIZED.value());
+                                        return;
+                                    }
+
+                                    String jwt = authHeader.substring(7);
+                                    var storedToken = tokenRepository.findByToken(jwt).orElse(null);
+
+                                    if (storedToken != null) {
+                                        storedToken.setExpired(true);
+                                        storedToken.setRevoked(true);
+                                        tokenRepository.save(storedToken);
+                                        sendLogoutResponse(response, "Logout successful", HttpStatus.OK.value());
+                                        SecurityContextHolder.clearContext();
+                                    } else {
+                                        sendLogoutResponse(response, "Logout failed", HttpStatus.UNAUTHORIZED.value());
+                                    }
+                                })
                 )
         ;
 
         return http.build();
+    }
+
+    private void sendLogoutResponse(HttpServletResponse response, String message, int code) throws IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        String jsonResponse = generateLogoutResponse(message, code);
+        response.getWriter().write(jsonResponse);
+        response.setStatus(code);
+    }
+
+    private String generateLogoutResponse(String message, Integer code) {
+        ResultResponse<String> resultResponse = new ResultResponse<>(HttpStatus.OK.value(), "Logout successful");
+
+        return "{"
+                + "\"code\":" + code + ","
+                + "\"message\":\"" + message + "\","
+                + "\"data\":\"" + resultResponse.getData() + "\""
+                + "}";
     }
 
     /**
