@@ -15,6 +15,7 @@ public class Messages {
     public static final String LOGIN_SUCCESS = "Login successfully";
     public static final String INVALID_TOKEN = "Invalid token";
     public static final String INVALID_ACCESS_TOKEN = "Invalid access token";
+    public static final String INVALID_REFRESH_TOKEN = "Invalid refresh token";
     public static final String REFRESH_TOKEN_SUCCESS = "Refresh token successfully";
     public static final String REFRESH_TOKEN_FAILED = "Refresh token failed";
     public static final String CHANGE_PASSWORD_SUCCESS = "Change password success";

@@ -1,6 +1,7 @@
 package com.example.ecommerce.service;
 
 import io.jsonwebtoken.Claims;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Map;
@@ -23,8 +24,13 @@ public interface JwtService {
     );
 
     boolean isTokenValid(String token, UserDetails userDetails);
+    boolean isTokenExpired(String token);
 
     String generateEmailVerifyToken(UserDetails userDetails);
 
     long getExtractExpirationToken(String token);
+
+    boolean validateToken(String token);
+
+    String getToken (HttpServletRequest httpServletRequest);
 }

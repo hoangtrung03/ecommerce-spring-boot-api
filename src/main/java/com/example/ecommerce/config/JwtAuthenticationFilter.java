@@ -1,8 +1,10 @@
 package com.example.ecommerce.config;
 
+import com.example.ecommerce.dto.response.SecurityResponse;
 import com.example.ecommerce.repository.TokenRepository;
 import com.example.ecommerce.service.JwtService;
 import com.example.ecommerce.service.impl.UserServiceImpl;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -26,6 +27,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserServiceImpl userService;
     private final TokenRepository tokenRepository;
+    private final SecurityResponse securityResponse;
 
     @Override
     protected void doFilterInternal(
@@ -37,40 +39,36 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-        final String authHeader = request.getHeader("Authorization");
-        final String jwt;
-        final String userEmail;
-        if (authHeader == null ||!authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-        jwt = authHeader.substring(7);
-        var isTokenValid = tokenRepository.findByToken(jwt)
-                .map(t -> !t.isExpired() && !t.isRevoked())
-                .orElse(false);
 
-        if (!isTokenValid) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+        String jwt = jwtService.getToken(request);
 
-        userEmail = jwtService.extractUsername(jwt);
-        if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userService.loadUserByUsername(userEmail);
-
-            if (jwtService.isTokenValid(jwt, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities()
-                );
-                authToken.setDetails(
-                        new WebAuthenticationDetailsSource().buildDetails(request)
-                );
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+        try {
+            if (jwtService.isTokenExpired(jwt)) {
+                throw new ExpiredJwtException(null, null, "Token has expired");
             }
+
+            String userEmail = jwtService.extractUsername(jwt);
+
+            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = userService.loadUserByUsername(userEmail);
+
+                if (jwtService.isTokenValid(jwt, userDetails)) {
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities()
+                    );
+                    authToken.setDetails(
+                            new WebAuthenticationDetailsSource().buildDetails(request)
+                    );
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
+            }
+
+            filterChain.doFilter(request, response);
+        } catch (Exception e) {
+            securityResponse.sendLogoutResponse(response, "EXPIRED_TOKEN", 401);
         }
-        filterChain.doFilter(request, response);
     }
 }
 

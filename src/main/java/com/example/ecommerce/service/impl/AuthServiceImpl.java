@@ -2,6 +2,7 @@ package com.example.ecommerce.service.impl;
 
 import com.example.ecommerce.dto.request.AuthRequest;
 import com.example.ecommerce.dto.request.EmailVerifyRequest;
+import com.example.ecommerce.dto.request.RefreshTokenRequest;
 import com.example.ecommerce.dto.request.RegisterRequest;
 import com.example.ecommerce.dto.response.AuthResponse;
 import com.example.ecommerce.entity.Role;
@@ -16,11 +17,9 @@ import com.example.ecommerce.repository.UserRepository;
 import com.example.ecommerce.service.AuthService;
 import com.example.ecommerce.service.JwtService;
 import jakarta.mail.MessagingException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -40,10 +39,6 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final RoleRepository roleRepository;
     private final EmailServiceImpl emailService;
-    @Value("${application.security.jwt.expiration}")
-    private long jwtExpiration;
-    @Value("${application.security.jwt.refresh-token.expiration}")
-    private long refreshExpiration;
 
     @Override
     public AuthResponse register(RegisterRequest request) {
@@ -157,46 +152,39 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public AuthResponse refreshToken(
-            HttpServletRequest request,
-            HttpServletResponse response
-    ) {
-        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        final String refreshToken;
-        final String userEmail;
+    public ResponseEntity<AuthResponse> refreshToken(RefreshTokenRequest refreshRequest) {
+        String refresh = "Bearer " + refreshRequest.getRefresh_token();
+        String refreshToken = refresh.substring(7);
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return AuthResponse.builder().message(Messages.INVALID_ACCESS_TOKEN).build();
-        }
-
-        refreshToken = authHeader.substring(7);
-        userEmail = jwtService.extractUsername(refreshToken);
+        String userEmail = jwtService.extractUsername(refreshToken);
 
         if (userEmail != null) {
             var user = this.repository.findByEmail(userEmail);
 
             if (user == null) {
-                return AuthResponse.builder().message(Messages.USER_NOT_FOUND).data("").build();
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(AuthResponse.builder().message(Messages.USER_NOT_FOUND).build());
             }
 
             if (jwtService.isTokenValid(refreshToken, user)) {
                 var accessToken = jwtService.generateToken(user);
+                var newRefreshToken = jwtService.generateRefreshToken(user);
                 revokeAllUserTokens(user);
                 saveUserToken(user, refreshToken);
 
-                return AuthResponse.builder()
-                        .message(Messages.REFRESH_TOKEN_SUCCESS)
-                        .data(AuthResponse.AuthTokens.builder()
+                return ResponseEntity.status(HttpStatus.OK).body(
+                            AuthResponse.builder()
+                                .message(Messages.REFRESH_TOKEN_SUCCESS)
+                                .data(AuthResponse.AuthTokens.builder()
                                 .accessToken(accessToken)
-                                .refreshToken(refreshToken)
+                                .refreshToken(newRefreshToken)
                                 .expiresAccessTokenIn(jwtService.getExtractExpirationToken(accessToken))
                                 .expiresRefreshTokenIn(jwtService.getExtractExpirationToken(refreshToken))
                                 .build())
-                        .build();
+                            .build());
             }
         }
 
-        return AuthResponse.builder().message(Messages.REFRESH_TOKEN_FAILED).build();
+        return ResponseEntity.status(401).body(AuthResponse.builder().message(Messages.REFRESH_TOKEN_FAILED).build());
     }
 
     @Override

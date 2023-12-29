@@ -1,8 +1,7 @@
 package com.example.ecommerce.config;
 
-import com.example.ecommerce.dto.response.ResultResponse;
+import com.example.ecommerce.dto.response.SecurityResponse;
 import com.example.ecommerce.repository.TokenRepository;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,11 +18,9 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.io.IOException;
 import java.util.List;
 
-import static com.example.ecommerce.entity.Permission.*;
-import static org.springframework.http.HttpMethod.*;
+import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
 @Configuration
@@ -51,6 +48,7 @@ public class SecurityConfiguration {
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
     private final TokenRepository tokenRepository;
+    private final SecurityResponse securityResponse;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -62,10 +60,6 @@ public class SecurityConfiguration {
                                 .requestMatchers(WHITE_LIST_URL)
                                 .permitAll()
                                 .requestMatchers(POST, "/api/v1/auth/**").permitAll()
-                                .requestMatchers(GET, "/api/v1/management/**").hasAnyAuthority(ADMIN_READ.name(), MANAGER_READ.name())
-                                .requestMatchers(POST, "/api/v1/management/**").hasAnyAuthority(ADMIN_CREATE.name(), MANAGER_CREATE.name())
-                                .requestMatchers(PUT, "/api/v1/management/**").hasAnyAuthority(ADMIN_UPDATE.name(), MANAGER_UPDATE.name())
-                                .requestMatchers(DELETE, "/api/v1/management/**").hasAnyAuthority(ADMIN_DELETE.name(), MANAGER_DELETE.name())
                                 .anyRequest()
                                 .authenticated()
                 )
@@ -78,7 +72,7 @@ public class SecurityConfiguration {
                                     final String authHeader = request.getHeader("Authorization");
 
                                     if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                                        sendLogoutResponse(response, "Logout failed", HttpStatus.UNAUTHORIZED.value());
+                                        securityResponse.sendLogoutResponse(response, "Logout failed", HttpStatus.UNAUTHORIZED.value());
                                         return;
                                     }
 
@@ -89,35 +83,16 @@ public class SecurityConfiguration {
                                         storedToken.setExpired(true);
                                         storedToken.setRevoked(true);
                                         tokenRepository.save(storedToken);
-                                        sendLogoutResponse(response, "Logout successful", HttpStatus.OK.value());
+                                        securityResponse.sendLogoutResponse(response, "Logout successful", HttpStatus.OK.value());
                                         SecurityContextHolder.clearContext();
                                     } else {
-                                        sendLogoutResponse(response, "Logout failed", HttpStatus.UNAUTHORIZED.value());
+                                        securityResponse.sendLogoutResponse(response, "Logout failed", HttpStatus.UNAUTHORIZED.value());
                                     }
                                 })
                 )
         ;
 
         return http.build();
-    }
-
-    private void sendLogoutResponse(HttpServletResponse response, String message, int code) throws IOException {
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-
-        String jsonResponse = generateLogoutResponse(message, code);
-        response.getWriter().write(jsonResponse);
-        response.setStatus(code);
-    }
-
-    private String generateLogoutResponse(String message, Integer code) {
-        ResultResponse<String> resultResponse = new ResultResponse<>(HttpStatus.OK.value(), "Logout successful");
-
-        return "{"
-                + "\"code\":" + code + ","
-                + "\"message\":\"" + message + "\","
-                + "\"data\":\"" + resultResponse.getData() + "\""
-                + "}";
     }
 
     /**
