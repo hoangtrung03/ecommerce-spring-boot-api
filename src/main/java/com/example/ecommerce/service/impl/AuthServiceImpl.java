@@ -72,7 +72,7 @@ public class AuthServiceImpl implements AuthService {
         var refreshToken = jwtService.generateRefreshToken(user);
 
         var savedUser = repository.save(user);
-        saveUserToken(savedUser, jwtToken);
+        saveUserToken(savedUser, refreshToken);
 
         try {
             sendVerificationEmail(savedUser, "http://localhost:3000");
@@ -85,8 +85,8 @@ public class AuthServiceImpl implements AuthService {
                 .data(AuthResponse.AuthTokens.builder()
                         .accessToken(jwtToken)
                         .refreshToken(refreshToken)
-                        .expiresAccessTokenIn(jwtService.getAccessTokenExpiration())
-                        .expiresRefreshTokenIn(jwtService.getRefreshTokenExpiration())
+                        .expiresAccessTokenIn(jwtService.getExtractExpirationToken(jwtToken))
+                        .expiresRefreshTokenIn(jwtService.getExtractExpirationToken(refreshToken))
                         .build())
                 .build();
     }
@@ -108,15 +108,15 @@ public class AuthServiceImpl implements AuthService {
             String jwtToken = jwtService.generateToken(user);
             String refreshToken = jwtService.generateRefreshToken(user);
             revokeAllUserTokens(user);
-            saveUserToken(user, jwtToken);
+            saveUserToken(user, refreshToken);
 
             return AuthResponse.builder()
                     .message(Messages.LOGIN_SUCCESS)
                     .data(AuthResponse.AuthTokens.builder()
                             .accessToken(jwtToken)
                             .refreshToken(refreshToken)
-                            .expiresAccessTokenIn(jwtService.getAccessTokenExpiration())
-                            .expiresRefreshTokenIn(jwtService.getRefreshTokenExpiration())
+                            .expiresAccessTokenIn(jwtService.getExtractExpirationToken(jwtToken))
+                            .expiresRefreshTokenIn(jwtService.getExtractExpirationToken(refreshToken))
                             .build())
                     .build();
         }
@@ -182,13 +182,15 @@ public class AuthServiceImpl implements AuthService {
             if (jwtService.isTokenValid(refreshToken, user)) {
                 var accessToken = jwtService.generateToken(user);
                 revokeAllUserTokens(user);
-                saveUserToken(user, accessToken);
+                saveUserToken(user, refreshToken);
 
                 return AuthResponse.builder()
                         .message(Messages.REFRESH_TOKEN_SUCCESS)
                         .data(AuthResponse.AuthTokens.builder()
                                 .accessToken(accessToken)
                                 .refreshToken(refreshToken)
+                                .expiresAccessTokenIn(jwtService.getExtractExpirationToken(accessToken))
+                                .expiresRefreshTokenIn(jwtService.getExtractExpirationToken(refreshToken))
                                 .build())
                         .build();
             }

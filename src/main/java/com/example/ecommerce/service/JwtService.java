@@ -26,6 +26,5 @@ public interface JwtService {
 
     String generateEmailVerifyToken(UserDetails userDetails);
 
-    long getAccessTokenExpiration();
-    long getRefreshTokenExpiration();
+    long getExtractExpirationToken(String token);
 }
