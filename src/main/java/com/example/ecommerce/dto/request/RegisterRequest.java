@@ -1,7 +1,9 @@
 package com.example.ecommerce.dto.request;
 
-import com.example.ecommerce.entity.Role;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,7 +19,6 @@ public class RegisterRequest {
 
     @NotEmpty(message = "This field is required")
     @Email(message = "Email is invalid")
-
     private String email;
 
     @NotBlank(message = "This field is required")

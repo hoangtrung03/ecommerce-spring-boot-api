@@ -24,13 +24,16 @@ public class Email {
     private String type;
     private boolean status;
     private String subject;
+    
+    @Lob
+    @Column(columnDefinition = "TEXT")
     private String content;
 
     @CreationTimestamp
-    @Column(name= "created_at")
+    @Column(name = "created_at")
     private Instant createdAt;
 
     @UpdateTimestamp
-    @Column(name= "updated_at")
+    @Column(name = "updated_at")
     private Instant updatedAt;
 }

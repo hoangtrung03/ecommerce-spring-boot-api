@@ -51,7 +51,7 @@ public class EmailServiceImpl implements EmailService {
                 .status(HttpStatus.OK)
                 .body(new ResultWithPaginationResponse<>(
                         StatusCode.SUCCESS,
-                        Messages.GET_ALL_USERS_SUCCESS,
+                        Messages.GET_EMAIL_SUCCESS,
                         emails,
                         paginationInfo
                 ));
