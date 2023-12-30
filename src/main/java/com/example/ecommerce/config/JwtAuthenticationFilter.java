@@ -1,7 +1,6 @@
 package com.example.ecommerce.config;
 
 import com.example.ecommerce.dto.response.SecurityResponse;
-import com.example.ecommerce.repository.TokenRepository;
 import com.example.ecommerce.service.JwtService;
 import com.example.ecommerce.service.impl.UserServiceImpl;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -19,6 +18,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -26,8 +27,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserServiceImpl userService;
-    private final TokenRepository tokenRepository;
     private final SecurityResponse securityResponse;
+    private final List<String> excludedUrls = Arrays.asList("/api/v1/auth", "/api/v1/emails");
 
     @Override
     protected void doFilterInternal(
@@ -35,7 +36,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
-        if (request.getServletPath().contains("/api/v1/auth")) {
+        String requestPath = request.getServletPath();
+        boolean isExcludedUrl = excludedUrls.stream().anyMatch(requestPath::startsWith);
+
+        if (isExcludedUrl) {
             filterChain.doFilter(request, response);
             return;
         }

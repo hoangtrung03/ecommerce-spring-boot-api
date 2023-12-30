@@ -22,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import javax.swing.*;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Optional;
@@ -75,11 +76,15 @@ public class EmailServiceImpl implements EmailService {
                     .status(HttpStatus.BAD_REQUEST)
                     .body(new ResultResponse<>(StatusCode.SUCCESS, Messages.EMAIL_TYPE_ALREADY_EXISTS, null));
         }
+        JTextPane textPane = new JTextPane();
+        textPane.setContentType("text/html");
+        textPane.setText(emailRequest.getContent());
+        String htmlContent = textPane.getText();
 
         var email = Email
                 .builder()
                 .type(emailRequest.getType())
-                .content(emailRequest.getContent())
+                .content(htmlContent)
                 .status(emailRequest.isStatus())
                 .subject(emailRequest.getSubject())
                 .build();
@@ -101,9 +106,14 @@ public class EmailServiceImpl implements EmailService {
                     .body(new ResultResponse<>(StatusCode.NOT_FOUND, Messages.EMAIL_NOT_FOUND, null));
         }
 
+        JTextPane textPane = new JTextPane();
+        textPane.setContentType("text/html");
+        textPane.setText(emailRequest.getContent());
+        String htmlContent = textPane.getText();
+
         Email emailToUpdate = optionalEmail.get();
         emailToUpdate.setType(emailRequest.getType());
-        emailToUpdate.setContent(emailRequest.getContent());
+        emailToUpdate.setContent(htmlContent);
         emailToUpdate.setStatus(emailRequest.isStatus());
         emailToUpdate.setSubject(emailRequest.getSubject());
 
