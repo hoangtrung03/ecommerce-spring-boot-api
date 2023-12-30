@@ -9,38 +9,29 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
+import java.util.List;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "ec_products")
-public class Product {
+@Table(name = "ec_categories")
+public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Integer id;
 
-    @Column(length = 100)
-    private String name;
-
-    @Lob
-    @Column(columnDefinition = "TEXT")
-    private String description;
-    private String summary;
-
-    @Column(length = 2000)
-    private String images;
-    private Double price;
-
-    @Column(name = "discount_price")
-    private Double discountPrice;
-
-    private Integer quantity;
-
     @ManyToOne
-    @JoinColumn(name = "category_id")
-    private Category category;
+    @JoinColumn(name = "parent_id")
+    private Category parentCategory;
+
+    private String slug;
+    private String name;
+    private String description;
+
+    @OneToMany(mappedBy = "parentCategory")
+    private List<Category> subCategories;
 
     @CreationTimestamp
     @Column(name = "created_at")
