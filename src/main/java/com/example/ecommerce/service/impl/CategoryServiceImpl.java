@@ -125,16 +125,9 @@ public class CategoryServiceImpl implements CategoryService {
         }
 
         Category categoryToUpdate = optionalCategory.get();
-
-        if (categoryRequest.getName() != null && !categoryRequest.getName().isEmpty()) {
-            categoryToUpdate.setName(categoryRequest.getName());
-        }
-        if (categoryRequest.getSlug() != null && !categoryRequest.getSlug().isEmpty()) {
-            categoryToUpdate.setSlug(categoryRequest.getSlug());
-        }
-        if (categoryRequest.getDescription() != null) {
-            categoryToUpdate.setDescription(categoryRequest.getDescription());
-        }
+        categoryToUpdate.setName(categoryRequest.getName());
+        categoryToUpdate.setSlug(categoryRequest.getSlug());
+        categoryToUpdate.setDescription(categoryRequest.getDescription());
         categoryToUpdate.setStatus(categoryRequest.isStatus());
 
         if (categoryRequest.getParentCategoryId() != null) {
@@ -142,7 +135,7 @@ public class CategoryServiceImpl implements CategoryService {
 
             if (optionalParentCategory.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(new ResultResponse<>(StatusCode.NOT_FOUND, Messages.CATEGORY_NOT_FOUND));
+                        .body(new ResultResponse<>(StatusCode.NOT_FOUND, Messages.PARENT_CATEGORY_NOT_FOUND));
             }
 
             categoryToUpdate.setParentCategory(optionalParentCategory.get());
