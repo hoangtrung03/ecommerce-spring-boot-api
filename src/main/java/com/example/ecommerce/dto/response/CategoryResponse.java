@@ -1,6 +1,5 @@
 package com.example.ecommerce.dto.response;
 
-import com.example.ecommerce.entity.Category;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,8 +13,9 @@ import java.util.List;
 @Builder
 public class CategoryResponse {
     private Integer id;
-    private List<Category> subCategories;
     private String slug;
     private String name;
+    private boolean status;
     private String description;
+    private List<CategoryResponse> subCategories;
 }

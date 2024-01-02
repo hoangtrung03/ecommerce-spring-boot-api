@@ -45,4 +45,8 @@ public class Messages {
 
     // Product messages
     public static final String GET_ALL_PRODUCT_SUCCESS = "Get all products success";
+
+    // Category messages
+    public static final String GET_ALL_CATEGORY_SUCCESS = "Get all categories success";
+    public static final String ADD_CATEGORY_SUCCESS = "Add category success";
 }

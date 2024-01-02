@@ -1,14 +1,13 @@
 package com.example.ecommerce.controller;
 
+import com.example.ecommerce.dto.request.CategoryRequest;
 import com.example.ecommerce.dto.response.CategoryResponse;
+import com.example.ecommerce.dto.response.ResultResponse;
 import com.example.ecommerce.dto.response.ResultWithPaginationResponse;
 import com.example.ecommerce.service.impl.CategoryServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -26,5 +25,10 @@ public class CategoryController {
             @RequestParam(name = "sort_direction", required = false) String sortDirection
     ) {
         return categoryService.getAllCategories(page, size, sortBy, sortDirection);
+    }
+
+    @PostMapping("/add")
+    public ResponseEntity<ResultResponse<CategoryResponse>> addCategory(@RequestBody CategoryRequest categoryRequest) {
+        return categoryService.addCategory(categoryRequest);
     }
 }
