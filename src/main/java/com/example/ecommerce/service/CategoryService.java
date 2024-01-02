@@ -13,4 +13,6 @@ public interface CategoryService {
     ResponseEntity<ResultWithPaginationResponse<List<CategoryResponse>>> getAllCategories(int page, int size, String sortBy, String sortDirection);
 
     ResponseEntity<ResultResponse<CategoryResponse>> addCategory(CategoryRequest categoryRequest);
+
+    ResponseEntity<ResultResponse<String>> deleteCategory(Integer id);
 }

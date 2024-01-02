@@ -31,4 +31,9 @@ public class CategoryController {
     public ResponseEntity<ResultResponse<CategoryResponse>> addCategory(@RequestBody CategoryRequest categoryRequest) {
         return categoryService.addCategory(categoryRequest);
     }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<ResultResponse<String>> deleteCategory(@PathVariable("id") Integer id) {
+        return categoryService.deleteCategory(id);
+    }
 }

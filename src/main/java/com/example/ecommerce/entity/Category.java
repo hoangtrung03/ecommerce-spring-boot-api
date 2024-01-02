@@ -34,7 +34,7 @@ public class Category {
     private Category parentCategory;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "parentCategory", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "parentCategory", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     private List<Category> subCategories;
 
     @JsonIgnore

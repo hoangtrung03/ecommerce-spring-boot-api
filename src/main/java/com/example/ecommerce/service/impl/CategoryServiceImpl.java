@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -63,6 +64,38 @@ public class CategoryServiceImpl implements CategoryService {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(new ResultResponse<>(StatusCode.SUCCESS, Messages.ADD_CATEGORY_SUCCESS));
     }
+
+    @Override
+    public ResponseEntity<ResultResponse<String>> deleteCategory(Integer id) {
+        Optional<Category> optionalCategory = categoryRepository.findById(id);
+
+        if (optionalCategory.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ResultResponse<>(StatusCode.NOT_FOUND, Messages.CATEGORY_NOT_FOUND));
+        }
+
+        Category category = optionalCategory.get();
+        Category parentCategory = category.getParentCategory();
+
+        if (parentCategory != null) {
+            parentCategory.getSubCategories().remove(category); // Xóa category ra khỏi danh sách subcategories của parent
+            category.setParentCategory(null); // Đặt parent của category thành null
+            categoryRepository.save(parentCategory); // Lưu lại parent category sau khi loại bỏ category con
+        }
+
+        // Cập nhật danh sách subCategories của category
+        if (!category.getSubCategories().isEmpty()) {
+            for (Category subCategory : category.getSubCategories()) {
+                subCategory.setParentCategory(null);
+                categoryRepository.save(subCategory); // Lưu lại danh mục con sau khi đặt parent thành null
+            }
+        }
+
+        categoryRepository.deleteById(id); // Xóa danh mục đã chọn
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ResultResponse<>(StatusCode.SUCCESS, Messages.DELETE_CATEGORY_SUCCESS));
+    }
+
 
     private CategoryResponse mapCategoryToResponse(Category category) {
         return CategoryResponse.builder()
