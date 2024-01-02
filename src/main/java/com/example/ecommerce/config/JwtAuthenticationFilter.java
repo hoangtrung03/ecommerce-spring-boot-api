@@ -28,7 +28,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserServiceImpl userService;
     private final SecurityResponse securityResponse;
-    private final List<String> excludedUrls = Arrays.asList("/api/v1/auth", "/api/v1/emails");
+    private final List<String> excludedUrls = Arrays.asList("/api/v1/auth", "/api/v1/emails", "/api/v1/products", "/api/v1/categories");
 
     @Override
     protected void doFilterInternal(

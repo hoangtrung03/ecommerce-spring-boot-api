@@ -42,7 +42,9 @@ public class SecurityConfiguration {
             "/swagger-ui.html",
             "/api/v1/role/**",
             "/api/v1/users/**",
-            "/api/v1/emails/**"
+            "/api/v1/emails/**",
+            "/api/v1/products/**",
+            "/api/v1/categories/**"
     };
 
     private final JwtAuthenticationFilter jwtAuthFilter;
@@ -98,7 +100,7 @@ public class SecurityConfiguration {
     /**
      * Creates and configures a CorsConfigurationSource object for handling CORS requests.
      *
-     * @return  The CorsConfigurationSource object with the specified CORS settings.
+     * @return The CorsConfigurationSource object with the specified CORS settings.
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {

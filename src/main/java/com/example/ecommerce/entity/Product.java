@@ -31,12 +31,16 @@ public class Product {
 
     @Column(length = 2000)
     private String images;
+
     private Double price;
 
     @Column(name = "discount_price")
     private Double discountPrice;
 
     private Integer quantity;
+
+    @Enumerated(EnumType.STRING)
+    private ProductStatus status;
 
     @ManyToOne
     @JoinColumn(name = "category_id")

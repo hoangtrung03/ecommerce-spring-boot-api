@@ -42,4 +42,7 @@ public class Messages {
     public static final String ROLE_UPDATED = "Role updated successfully";
     public static final String ROLE_NOT_UPDATABLE = "Role is not updatable";
     public static final String ROLE_ALREADY_EXISTS = "Role already exists";
+
+    // Product messages
+    public static final String GET_ALL_PRODUCT_SUCCESS = "Get all products success";
 }
