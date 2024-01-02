@@ -52,6 +52,13 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public ResponseEntity<ResultResponse<CategoryResponse>> addCategory(CategoryRequest categoryRequest) {
+        var isExistParentId = categoryRepository.findById(categoryRequest.getParentCategoryId());
+
+        if (isExistParentId.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ResultResponse<>(StatusCode.NOT_FOUND, Messages.CATEGORY_NOT_FOUND));
+        }
+
         Category category = Category.builder()
                 .name(categoryRequest.getName())
                 .slug(categoryRequest.getSlug())
@@ -76,22 +83,25 @@ public class CategoryServiceImpl implements CategoryService {
 
         Category category = optionalCategory.get();
         Category parentCategory = category.getParentCategory();
+        List<Category> subCategories = category.getSubCategories();
 
         if (parentCategory != null) {
-            parentCategory.getSubCategories().remove(category); // Xóa category ra khỏi danh sách subcategories của parent
-            category.setParentCategory(null); // Đặt parent của category thành null
-            categoryRepository.save(parentCategory); // Lưu lại parent category sau khi loại bỏ category con
-        }
-
-        // Cập nhật danh sách subCategories của category
-        if (!category.getSubCategories().isEmpty()) {
-            for (Category subCategory : category.getSubCategories()) {
+            for (Category subCategory : subCategories) {
+                subCategory.setParentCategory(parentCategory);
+                categoryRepository.save(subCategory);
+            }
+            parentCategory.getSubCategories().remove(category);
+            categoryRepository.save(parentCategory);
+        } else {
+            for (Category subCategory : subCategories) {
                 subCategory.setParentCategory(null);
-                categoryRepository.save(subCategory); // Lưu lại danh mục con sau khi đặt parent thành null
+                subCategory.getSubCategories().forEach(sc -> sc.setParentCategory(null));
+                categoryRepository.saveAll(subCategory.getSubCategories());
             }
         }
 
-        categoryRepository.deleteById(id); // Xóa danh mục đã chọn
+        categoryRepository.deleteById(id);
+
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ResultResponse<>(StatusCode.SUCCESS, Messages.DELETE_CATEGORY_SUCCESS));
     }
