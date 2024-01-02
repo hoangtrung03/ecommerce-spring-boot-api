@@ -106,6 +106,56 @@ public class CategoryServiceImpl implements CategoryService {
                 .body(new ResultResponse<>(StatusCode.SUCCESS, Messages.DELETE_CATEGORY_SUCCESS));
     }
 
+    @Override
+    public ResponseEntity<ResultResponse<CategoryResponse>> getCategory(Integer id) {
+        Optional<Category> optionalCategory = categoryRepository.findById(id);
+
+        return optionalCategory.map(category -> ResponseEntity.status(HttpStatus.OK)
+                        .body(new ResultResponse<>(StatusCode.SUCCESS, Messages.GET_CATEGORY_SUCCESS, mapCategoryToResponse(category))))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResultResponse<>(StatusCode.NOT_FOUND, Messages.CATEGORY_NOT_FOUND)));
+    }
+
+    @Override
+    public ResponseEntity<ResultResponse<CategoryResponse>> updateCategory(Integer id, CategoryRequest categoryRequest) {
+        Optional<Category> optionalCategory = categoryRepository.findById(id);
+
+        if (optionalCategory.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ResultResponse<>(StatusCode.NOT_FOUND, Messages.CATEGORY_NOT_FOUND));
+        }
+
+        Category categoryToUpdate = optionalCategory.get();
+
+        if (categoryRequest.getName() != null && !categoryRequest.getName().isEmpty()) {
+            categoryToUpdate.setName(categoryRequest.getName());
+        }
+        if (categoryRequest.getSlug() != null && !categoryRequest.getSlug().isEmpty()) {
+            categoryToUpdate.setSlug(categoryRequest.getSlug());
+        }
+        if (categoryRequest.getDescription() != null) {
+            categoryToUpdate.setDescription(categoryRequest.getDescription());
+        }
+        categoryToUpdate.setStatus(categoryRequest.isStatus());
+
+        if (categoryRequest.getParentCategoryId() != null) {
+            Optional<Category> optionalParentCategory = categoryRepository.findById(categoryRequest.getParentCategoryId());
+
+            if (optionalParentCategory.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new ResultResponse<>(StatusCode.NOT_FOUND, Messages.CATEGORY_NOT_FOUND));
+            }
+
+            categoryToUpdate.setParentCategory(optionalParentCategory.get());
+        } else {
+            categoryToUpdate.setParentCategory(null);
+        }
+
+        categoryRepository.save(categoryToUpdate);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ResultResponse<>(StatusCode.SUCCESS, Messages.UPDATE_CATEGORY_SUCCESS, mapCategoryToResponse(categoryToUpdate)));
+    }
+
 
     private CategoryResponse mapCategoryToResponse(Category category) {
         return CategoryResponse.builder()

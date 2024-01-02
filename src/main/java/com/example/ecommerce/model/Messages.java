@@ -48,7 +48,9 @@ public class Messages {
 
     // Category messages
     public static final String GET_ALL_CATEGORY_SUCCESS = "Get all categories success";
+    public static final String GET_CATEGORY_SUCCESS = "Get category success";
     public static final String ADD_CATEGORY_SUCCESS = "Add category success";
     public static final String DELETE_CATEGORY_SUCCESS = "Delete category success";
     public static final String CATEGORY_NOT_FOUND = "Category not found";
+    public static final String UPDATE_CATEGORY_SUCCESS = "Update category success";
 }

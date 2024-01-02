@@ -27,9 +27,21 @@ public class CategoryController {
         return categoryService.getAllCategories(page, size, sortBy, sortDirection);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<ResultResponse<CategoryResponse>> getCategory(@PathVariable("id") Integer id) {
+        return categoryService.getCategory(id);
+    }
+
     @PostMapping("/add")
     public ResponseEntity<ResultResponse<CategoryResponse>> addCategory(@RequestBody CategoryRequest categoryRequest) {
         return categoryService.addCategory(categoryRequest);
+    }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<ResultResponse<CategoryResponse>> updateCategory(
+            @PathVariable("id") Integer id,
+            @RequestBody CategoryRequest categoryRequest) {
+        return categoryService.updateCategory(id, categoryRequest);
     }
 
     @DeleteMapping("/delete/{id}")

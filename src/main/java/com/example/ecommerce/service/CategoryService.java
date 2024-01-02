@@ -15,4 +15,8 @@ public interface CategoryService {
     ResponseEntity<ResultResponse<CategoryResponse>> addCategory(CategoryRequest categoryRequest);
 
     ResponseEntity<ResultResponse<String>> deleteCategory(Integer id);
+
+    ResponseEntity<ResultResponse<CategoryResponse>> getCategory(Integer id);
+
+    ResponseEntity<ResultResponse<CategoryResponse>> updateCategory(Integer id, CategoryRequest categoryRequest);
 }
