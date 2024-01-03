@@ -190,9 +190,9 @@ public class UserServiceImpl implements UserService {
         String password = PasswordUtils.generatePassword();
         String content =
                 "A new password has been generated:<br>"
-                + "Password: " + password + "<br>"
-                + "Thank you,<br>"
-                + "Your company name.";
+                        + "Password: " + password + "<br>"
+                        + "Thank you,<br>"
+                        + "Your company name.";
 
         try {
             emailService.sendVerificationEmail("vht03032000@gmail.com", "Ecommerce", toAddress, subject, content);
@@ -209,7 +209,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResponseEntity<ResultWithPaginationResponse<List<UserDetailResponse>>> searchUser(String keyword,Integer page, Integer size, String sortBy, String sortDirection) {
+    public ResponseEntity<ResultWithPaginationResponse<List<UserDetailResponse>>> searchUser(String keyword, Integer page, Integer size, String sortBy, String sortDirection) {
         Sort.Direction direction = Sort.Direction.ASC;
 
         if (sortDirection != null && sortDirection.equalsIgnoreCase("desc")) {
@@ -217,7 +217,7 @@ public class UserServiceImpl implements UserService {
         }
 
         Pageable pageAble = PageRequest.of(page - 1, size, direction, sortBy);
-        Page<User> users = userRepository.search(keyword, pageAble);
+        Page<User> users = userRepository.search(keyword.toLowerCase(), pageAble);
 
         if (users.isEmpty()) {
             return ResponseEntity
