@@ -58,4 +58,15 @@ public class CategoryController {
     public ResponseEntity<ResultResponse<String>> deleteCategory(@PathVariable("id") Integer id) {
         return categoryService.deleteCategory(id);
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<ResultWithPaginationResponse<List<CategoryResponse>>> searchCategory(
+            @RequestParam("search") String keyword,
+            @RequestParam(name = "page", defaultValue = "1") Integer page,
+            @RequestParam(name = "per_page", defaultValue = "10") Integer size,
+            @RequestParam(name = "sort_by", defaultValue = "createdAt") String sortBy,
+            @RequestParam(name = "sort_direction", required = false) String sortDirection
+    ) {
+        return categoryService.searchCategory(keyword, page, size, sortBy, sortDirection);
+    }
 }

@@ -1,7 +1,10 @@
 package com.example.ecommerce.service.impl;
 
 import com.example.ecommerce.dto.request.CategoryRequest;
-import com.example.ecommerce.dto.response.*;
+import com.example.ecommerce.dto.response.CategoryResponse;
+import com.example.ecommerce.dto.response.PaginationInfo;
+import com.example.ecommerce.dto.response.ResultResponse;
+import com.example.ecommerce.dto.response.ResultWithPaginationResponse;
 import com.example.ecommerce.entity.Category;
 import com.example.ecommerce.model.Messages;
 import com.example.ecommerce.model.StatusCode;
@@ -173,6 +176,40 @@ public class CategoryServiceImpl implements CategoryService {
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ResultResponse<>(StatusCode.SUCCESS, Messages.UPDATE_CATEGORY_SUCCESS, mapCategoryToResponse(categoryToUpdate)));
+    }
+
+    @Override
+    public ResponseEntity<ResultWithPaginationResponse<List<CategoryResponse>>> searchCategory(String keyword, Integer page, Integer size, String sortBy, String sortDirection) {
+        Sort.Direction direction = Sort.Direction.ASC;
+
+        if (sortDirection != null && sortDirection.equalsIgnoreCase("desc")) {
+            direction = Sort.Direction.DESC;
+        }
+
+        Pageable pageAble = PageRequest.of(page - 1, size, direction, sortBy);
+        Page<Category> categoryPage = categoryRepository.search(keyword.toLowerCase(), pageAble);
+
+        if (categoryPage.isEmpty()) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(new ResultWithPaginationResponse<>(
+                            StatusCode.NOT_FOUND,
+                            Messages.USER_NOT_FOUND,
+                            null,
+                            new PaginationInfo()
+                    ));
+        }
+
+        List<CategoryResponse> categoryResponses = categoryPage.getContent().stream()
+                .map(this::mapCategoryToResponse)
+                .collect(Collectors.toList());
+
+        PaginationInfo paginationInfo = new PaginationInfo(
+                categoryPage.getNumber(), categoryPage.getSize(), categoryPage.getTotalPages());
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new ResultWithPaginationResponse<>(StatusCode.SUCCESS, Messages.GET_ALL_USERS_SUCCESS, categoryResponses, paginationInfo));
     }
 
 

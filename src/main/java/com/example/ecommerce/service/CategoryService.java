@@ -20,4 +20,6 @@ public interface CategoryService {
     ResponseEntity<ResultResponse<CategoryResponse>> getCategory(Integer id);
 
     ResponseEntity<ResultResponse<CategoryResponse>> updateCategory(Integer id, CategoryRequest categoryRequest);
+
+    ResponseEntity<ResultWithPaginationResponse<List<CategoryResponse>>> searchCategory(String keyword, Integer page, Integer size, String sortBy, String sortDirection);
 }
