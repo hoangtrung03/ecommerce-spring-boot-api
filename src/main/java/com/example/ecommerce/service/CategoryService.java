@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import java.util.List;
 
 public interface CategoryService {
+    ResponseEntity<ResultWithPaginationResponse<List<CategoryResponse>>> getAllCategoryAdmin(int page, int size, String sortBy, String sortDirection);
 
     ResponseEntity<ResultWithPaginationResponse<List<CategoryResponse>>> getAllCategories(int page, int size, String sortBy, String sortDirection);
 

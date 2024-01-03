@@ -27,6 +27,16 @@ public class CategoryController {
         return categoryService.getAllCategories(page, size, sortBy, sortDirection);
     }
 
+    @GetMapping("/all-admin")
+    public ResponseEntity<ResultWithPaginationResponse<List<CategoryResponse>>> getCategoriesAdmin(
+            @RequestParam(name = "page", defaultValue = "1") Integer page,
+            @RequestParam(name = "per_page", defaultValue = "10") Integer size,
+            @RequestParam(name = "sort_by", defaultValue = "createdAt") String sortBy,
+            @RequestParam(name = "sort_direction", required = false) String sortDirection
+    ) {
+        return categoryService.getAllCategoryAdmin(page, size, sortBy, sortDirection);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ResultResponse<CategoryResponse>> getCategory(@PathVariable("id") Integer id) {
         return categoryService.getCategory(id);

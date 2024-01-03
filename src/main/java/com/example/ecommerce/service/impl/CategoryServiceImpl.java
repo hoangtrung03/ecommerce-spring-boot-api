@@ -1,10 +1,7 @@
 package com.example.ecommerce.service.impl;
 
 import com.example.ecommerce.dto.request.CategoryRequest;
-import com.example.ecommerce.dto.response.CategoryResponse;
-import com.example.ecommerce.dto.response.PaginationInfo;
-import com.example.ecommerce.dto.response.ResultResponse;
-import com.example.ecommerce.dto.response.ResultWithPaginationResponse;
+import com.example.ecommerce.dto.response.*;
 import com.example.ecommerce.entity.Category;
 import com.example.ecommerce.model.Messages;
 import com.example.ecommerce.model.StatusCode;
@@ -27,6 +24,35 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
+
+    @Override
+    public ResponseEntity<ResultWithPaginationResponse<List<CategoryResponse>>> getAllCategoryAdmin(int page, int size, String sortBy, String sortDirection) {
+        Sort.Direction direction = Sort.Direction.ASC;
+
+        if (sortDirection != null && sortDirection.equalsIgnoreCase("desc")) {
+            direction = Sort.Direction.DESC;
+        }
+
+        Pageable pageable = PageRequest.of(page - 1, size, direction, sortBy);
+        Page<Category> categoryPage = categoryRepository.findAll(pageable);
+
+        List<CategoryResponse> categoryResponses = categoryPage.stream()
+                .map(category -> new CategoryResponse(
+                        category.getId(),
+                        category.getSlug(),
+                        category.getName(),
+                        category.isStatus(),
+                        category.getDescription(),
+                        mapSubCategories(category.getSubCategories())
+                ))
+                .toList();
+
+        PaginationInfo paginationInfo = new PaginationInfo(
+                categoryPage.getNumber(), categoryPage.getSize(), categoryPage.getTotalPages()
+        );
+
+        return ResponseEntity.status(HttpStatus.OK).body(new ResultWithPaginationResponse<>(StatusCode.SUCCESS, Messages.GET_ALL_CATEGORY_SUCCESS, categoryResponses, paginationInfo));
+    }
 
     @Override
     public ResponseEntity<ResultWithPaginationResponse<List<CategoryResponse>>> getAllCategories(int page, int size, String sortBy, String sortDirection) {
