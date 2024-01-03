@@ -194,22 +194,29 @@ public class CategoryServiceImpl implements CategoryService {
                     .status(HttpStatus.NOT_FOUND)
                     .body(new ResultWithPaginationResponse<>(
                             StatusCode.NOT_FOUND,
-                            Messages.USER_NOT_FOUND,
+                            Messages.CATEGORY_NOT_FOUND,
                             null,
                             new PaginationInfo()
                     ));
         }
 
-        List<CategoryResponse> categoryResponses = categoryPage.getContent().stream()
-                .map(this::mapCategoryToResponse)
-                .collect(Collectors.toList());
+        List<CategoryResponse> categoryResponses = categoryPage.stream()
+                .map(category -> new CategoryResponse(
+                        category.getId(),
+                        category.getSlug(),
+                        category.getName(),
+                        category.isStatus(),
+                        category.getDescription(),
+                        mapSubCategories(category.getSubCategories())
+                ))
+                .toList();
 
         PaginationInfo paginationInfo = new PaginationInfo(
                 categoryPage.getNumber(), categoryPage.getSize(), categoryPage.getTotalPages());
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(new ResultWithPaginationResponse<>(StatusCode.SUCCESS, Messages.GET_ALL_USERS_SUCCESS, categoryResponses, paginationInfo));
+                .body(new ResultWithPaginationResponse<>(StatusCode.SUCCESS, Messages.SEARCH_CATEGORY_SUCCESS, categoryResponses, paginationInfo));
     }
 
 
