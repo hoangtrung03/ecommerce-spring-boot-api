@@ -81,11 +81,13 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public ResponseEntity<ResultResponse<CategoryResponse>> addCategory(CategoryRequest categoryRequest) {
-        var isExistParentId = categoryRepository.findById(categoryRequest.getParentCategoryId());
+        if (categoryRequest.getParentCategoryId() != null) {
+            var isExistParentId = categoryRepository.findById(categoryRequest.getParentCategoryId());
 
-        if (isExistParentId.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ResultResponse<>(StatusCode.NOT_FOUND, Messages.CATEGORY_NOT_FOUND));
+            if (isExistParentId.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new ResultResponse<>(StatusCode.NOT_FOUND, Messages.PARENT_CATEGORY_NOT_FOUND));
+            }
         }
 
         Category category = Category.builder()
@@ -93,13 +95,16 @@ public class CategoryServiceImpl implements CategoryService {
                 .slug(categoryRequest.getSlug())
                 .description(categoryRequest.getDescription())
                 .status(categoryRequest.isStatus())
-                .parentCategory(categoryRepository.findById(categoryRequest.getParentCategoryId()).orElse(null))
+                .parentCategory(categoryRequest.getParentCategoryId() != null ?
+                        categoryRepository.findById(categoryRequest.getParentCategoryId()).orElse(null) :
+                        null)
                 .build();
 
         categoryRepository.save(category);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(new ResultResponse<>(StatusCode.SUCCESS, Messages.ADD_CATEGORY_SUCCESS));
     }
+
 
     @Override
     public ResponseEntity<ResultResponse<String>> deleteCategory(Integer id) {
