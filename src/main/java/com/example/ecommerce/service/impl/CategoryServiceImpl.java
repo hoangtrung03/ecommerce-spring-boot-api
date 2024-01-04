@@ -40,14 +40,7 @@ public class CategoryServiceImpl implements CategoryService {
         Page<Category> categoryPage = categoryRepository.findAll(pageable);
 
         List<CategoryResponse> categoryResponses = categoryPage.stream()
-                .map(category -> new CategoryResponse(
-                        category.getId(),
-                        category.getSlug(),
-                        category.getName(),
-                        category.isStatus(),
-                        category.getDescription(),
-                        mapSubCategories(category.getSubCategories())
-                ))
+                .map(this::mapCategoryToResponse)
                 .toList();
 
         PaginationInfo paginationInfo = new PaginationInfo(
@@ -81,8 +74,8 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public ResponseEntity<ResultResponse<CategoryResponse>> addCategory(CategoryRequest categoryRequest) {
-        if (categoryRequest.getParentCategoryId() != null) {
-            var isExistParentId = categoryRepository.findById(categoryRequest.getParentCategoryId());
+        if (categoryRequest.getParent_category_id() != null) {
+            var isExistParentId = categoryRepository.findById(categoryRequest.getParent_category_id());
 
             if (isExistParentId.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -90,13 +83,18 @@ public class CategoryServiceImpl implements CategoryService {
             }
         }
 
+        if (categoryRepository.existsBySlug(categoryRequest.getSlug())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(new ResultResponse<>(StatusCode.CONFLICT, Messages.CATEGORY_EXIST));
+        }
+
         Category category = Category.builder()
                 .name(categoryRequest.getName())
                 .slug(categoryRequest.getSlug())
                 .description(categoryRequest.getDescription())
                 .status(categoryRequest.isStatus())
-                .parentCategory(categoryRequest.getParentCategoryId() != null ?
-                        categoryRepository.findById(categoryRequest.getParentCategoryId()).orElse(null) :
+                .parentCategory(categoryRequest.getParent_category_id() != null ?
+                        categoryRepository.findById(categoryRequest.getParent_category_id()).orElse(null) :
                         null)
                 .build();
 
@@ -164,8 +162,8 @@ public class CategoryServiceImpl implements CategoryService {
         categoryToUpdate.setDescription(categoryRequest.getDescription());
         categoryToUpdate.setStatus(categoryRequest.isStatus());
 
-        if (categoryRequest.getParentCategoryId() != null) {
-            Optional<Category> optionalParentCategory = categoryRepository.findById(categoryRequest.getParentCategoryId());
+        if (categoryRequest.getParent_category_id() != null) {
+            Optional<Category> optionalParentCategory = categoryRepository.findById(categoryRequest.getParent_category_id());
 
             if (optionalParentCategory.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -212,7 +210,8 @@ public class CategoryServiceImpl implements CategoryService {
                         category.getName(),
                         category.isStatus(),
                         category.getDescription(),
-                        mapSubCategories(category.getSubCategories())
+                        mapSubCategories(category.getSubCategories()),
+                        category.getParentCategory().getId()
                 ))
                 .toList();
 
@@ -224,6 +223,13 @@ public class CategoryServiceImpl implements CategoryService {
                 .body(new ResultWithPaginationResponse<>(StatusCode.SUCCESS, Messages.SEARCH_CATEGORY_SUCCESS, categoryResponses, paginationInfo));
     }
 
+    @Override
+    public ResponseEntity<ResultResponse<String>> deleteMultiCategory(List<Integer> categoryIds) {
+        categoryRepository.deleteAllById(categoryIds);
+
+        return ResponseEntity.status(HttpStatus.OK).body(new ResultResponse<>(StatusCode.SUCCESS, Messages.DELETE_CATEGORY_SUCCESS));
+    }
+
 
     private CategoryResponse mapCategoryToResponse(Category category) {
         return CategoryResponse.builder()
@@ -232,7 +238,8 @@ public class CategoryServiceImpl implements CategoryService {
                 .slug(category.getSlug())
                 .description(category.getDescription())
                 .status(category.isStatus())
-                .subCategories(mapSubCategories(category.getSubCategories()))
+                .sub_categories(mapSubCategories(category.getSubCategories()))
+                .parent_category_id(category.getParentCategory() != null ? category.getParentCategory().getId() : null)
                 .build();
     }
 

@@ -12,4 +12,6 @@ public interface CategoryRepository extends JpaRepository<Category, Integer> {
             "OR lower(u.name) LIKE %:query% " +
             "OR lower(u.slug) LIKE %:query%")
     Page<Category> search(@Param("query") String query, Pageable pageable);
+
+    boolean existsBySlug(String slug);
 }

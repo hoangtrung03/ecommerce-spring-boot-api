@@ -12,5 +12,5 @@ public class CategoryRequest {
     private String slug;
     private String description;
     private boolean status;
-    private Integer parentCategoryId;
+    private Integer parent_category_id;
 }

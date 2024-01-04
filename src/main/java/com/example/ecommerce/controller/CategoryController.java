@@ -59,6 +59,11 @@ public class CategoryController {
         return categoryService.deleteCategory(id);
     }
 
+    @DeleteMapping("/delete")
+    public ResponseEntity<ResultResponse<String>> deleteMultiCategory(@RequestParam("ids") List<Integer> ids) {
+        return categoryService.deleteMultiCategory(ids);
+    }
+
     @GetMapping("/search")
     public ResponseEntity<ResultWithPaginationResponse<List<CategoryResponse>>> searchCategory(
             @RequestParam("search") String keyword,

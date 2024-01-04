@@ -22,4 +22,6 @@ public interface CategoryService {
     ResponseEntity<ResultResponse<CategoryResponse>> updateCategory(Integer id, CategoryRequest categoryRequest);
 
     ResponseEntity<ResultWithPaginationResponse<List<CategoryResponse>>> searchCategory(String keyword, Integer page, Integer size, String sortBy, String sortDirection);
+
+    ResponseEntity<ResultResponse<String>> deleteMultiCategory(List<Integer> categoryIds);
 }

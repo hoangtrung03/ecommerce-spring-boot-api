@@ -17,5 +17,6 @@ public class CategoryResponse {
     private String name;
     private boolean status;
     private String description;
-    private List<CategoryResponse> subCategories;
+    private List<CategoryResponse> sub_categories;
+    private Integer parent_category_id;
 }
