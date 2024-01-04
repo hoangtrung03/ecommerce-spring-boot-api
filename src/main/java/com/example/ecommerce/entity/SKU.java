@@ -9,40 +9,24 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
-import java.util.List;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "ec_products")
-public class Product {
+@Table(name = "ec_skus")
+public class SKU {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
-    @Column(length = 100)
-    private String name;
-
-    @Lob
-    @Column(columnDefinition = "TEXT")
-    private String description;
-
-    private String summary;
-
-    // Image is show on listing page
-    private String images;
-
-    // Status active or inactive to response on frontend
-    private boolean status;
+    @Column(name = "sku_code")
+    private String skuCode;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
-    private Category category;
-
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Variant> variants;
+    @JoinColumn(name = "variant_id", nullable = false)
+    private Variant productVariant;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
