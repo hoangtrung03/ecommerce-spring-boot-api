@@ -25,6 +25,8 @@ public class Variant {
 
     private String name;
 
+    private String slug;
+
     @Column(length = 2000)
     private String images;
 

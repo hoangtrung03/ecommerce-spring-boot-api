@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 
@@ -25,16 +26,19 @@ public class Product {
     @Column(length = 100)
     private String name;
 
-    @Lob
     @Column(columnDefinition = "TEXT")
     private String description;
 
     private String summary;
 
+    private String slug;
+
     // Image is show on listing page
     private String images;
+    private BigDecimal price;
 
     // Status active or inactive to response on frontend
+    @Column(columnDefinition = "BOOLEAN")
     private boolean status;
 
     @ManyToOne(fetch = FetchType.LAZY)

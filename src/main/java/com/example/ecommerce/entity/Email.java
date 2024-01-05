@@ -18,13 +18,13 @@ import java.time.Instant;
 @Table(name = "ec_email")
 public class Email {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     private String type;
     private boolean status;
     private String subject;
-    
+
     @Lob
     @Column(columnDefinition = "TEXT")
     private String content;

@@ -1,14 +1,14 @@
 package com.example.ecommerce.controller;
 
+import com.example.ecommerce.dto.request.ProductRequest;
 import com.example.ecommerce.dto.response.ProductResponse;
+import com.example.ecommerce.dto.response.ResultResponse;
 import com.example.ecommerce.dto.response.ResultWithPaginationResponse;
-import com.example.ecommerce.service.impl.ProductServiceImpl;
+import com.example.ecommerce.service.ProductService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -16,15 +16,38 @@ import java.util.List;
 @RequestMapping("/api/v1/products")
 @RequiredArgsConstructor
 public class ProductController {
-    private final ProductServiceImpl productService;
+
+    private final ProductService productService;
 
     @GetMapping("/all")
-    public ResponseEntity<ResultWithPaginationResponse<List<ProductResponse>>> getAllProduct(
+    public ResponseEntity<ResultWithPaginationResponse<List<ProductResponse>>> getAllProducts(
             @RequestParam(name = "page", defaultValue = "1") Integer page,
             @RequestParam(name = "per_page", defaultValue = "10") Integer size,
             @RequestParam(name = "sort_by", defaultValue = "createdAt") String sortBy,
             @RequestParam(name = "sort_direction", required = false) String sortDirection
     ) {
-        return productService.getAllProduct(page, size, sortBy, sortDirection);
+        return productService.getAllProducts(page, size, sortBy, sortDirection);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ResultResponse<ProductResponse>> getProduct(@PathVariable("id") Integer id) {
+        return productService.getProduct(id);
+    }
+
+    @PostMapping("/add")
+    public ResponseEntity<ResultResponse<ProductResponse>> addProduct(@RequestBody @Valid ProductRequest productRequest) {
+        return productService.addProduct(productRequest);
+    }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<ResultResponse<ProductResponse>> updateProduct(
+            @PathVariable("id") Integer id,
+            @RequestBody @Valid ProductRequest productRequest) {
+        return productService.updateProduct(id, productRequest);
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<ResultResponse<String>> deleteProduct(@PathVariable("id") Integer id) {
+        return productService.deleteProduct(id);
     }
 }

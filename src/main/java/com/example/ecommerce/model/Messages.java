@@ -45,6 +45,12 @@ public class Messages {
 
     // Product messages
     public static final String GET_ALL_PRODUCT_SUCCESS = "Get all products success";
+    public static final String GET_PRODUCT_SUCCESS = "Get product success";
+    public static final String ADD_PRODUCT_SUCCESS = "Add product success";
+    public static final String UPDATE_PRODUCT_SUCCESS = "Update product success";
+    public static final String DELETE_PRODUCT_SUCCESS = "Delete product success";
+    public static final String PRODUCT_NOT_FOUND = "Product not found";
+    public static final String PRODUCT_EXIST = "Product exist";
 
     // Category messages
     public static final String GET_ALL_CATEGORY_SUCCESS = "Get all categories success";

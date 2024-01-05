@@ -1,56 +1,135 @@
 package com.example.ecommerce.service.impl;
 
+import com.example.ecommerce.dto.request.ProductRequest;
 import com.example.ecommerce.dto.response.PaginationInfo;
 import com.example.ecommerce.dto.response.ProductResponse;
+import com.example.ecommerce.dto.response.ResultResponse;
 import com.example.ecommerce.dto.response.ResultWithPaginationResponse;
+import com.example.ecommerce.entity.Category;
 import com.example.ecommerce.entity.Product;
 import com.example.ecommerce.model.Messages;
 import com.example.ecommerce.model.StatusCode;
+import com.example.ecommerce.repository.CategoryRepository;
 import com.example.ecommerce.repository.ProductRepository;
 import com.example.ecommerce.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
+    private final ModelMapper modelMapper;
+    private final CategoryRepository categoryRepository;
 
     @Override
-    public ResponseEntity<ResultWithPaginationResponse<List<ProductResponse>>> getAllProduct(int page, int size, String sortBy, String sortDirection) {
+    public ResponseEntity<ResultWithPaginationResponse<List<ProductResponse>>> getAllProducts(int page, int size, String sortBy, String sortDirection) {
         Sort.Direction direction = Sort.Direction.ASC;
 
         if (sortDirection != null && sortDirection.equalsIgnoreCase("desc")) {
             direction = Sort.Direction.DESC;
         }
 
-        Pageable pageable = PageRequest.of(page - 1, size, direction, sortBy);
+        PageRequest pageable = PageRequest.of(page - 1, size, direction, sortBy);
         Page<Product> productPage = productRepository.findAll(pageable);
 
-        List<ProductResponse> productResponse = productPage.getContent().stream()
-                .map(product -> new ProductResponse(
-                        product.getId(),
-                        product.getName(),
-                        product.getDescription(),
-                        product.getSummary(),
-                        null,
-                        product.isStatus()
-                ))
-                .toList();
+        List<ProductResponse> products = productPage.getContent().stream()
+                .map(this::mapProductToResponse)
+                .collect(Collectors.toList());
 
         PaginationInfo paginationInfo = new PaginationInfo(
                 productPage.getNumber(), productPage.getSize(), productPage.getTotalPages());
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new ResultWithPaginationResponse<>(StatusCode.SUCCESS, Messages.GET_ALL_PRODUCT_SUCCESS, productResponse, paginationInfo));
+        return ResponseEntity.status(HttpStatus.OK).body(new ResultWithPaginationResponse<>(StatusCode.SUCCESS, Messages.GET_ALL_PRODUCT_SUCCESS, products, paginationInfo));
+    }
+
+    @Override
+    public ResponseEntity<ResultResponse<ProductResponse>> getProduct(Integer id) {
+        Optional<Product> optionalProduct = productRepository.findById(id);
+
+        return optionalProduct.map(product -> ResponseEntity.status(HttpStatus.OK).body(new ResultResponse<>(StatusCode.SUCCESS, Messages.GET_PRODUCT_SUCCESS, mapProductToResponse(product))))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
+
+    @Override
+    public ResponseEntity<ResultResponse<ProductResponse>> addProduct(ProductRequest productRequest) {
+        Optional<Product> isExistProductBySlug = productRepository.findBySlug(productRequest.getSlug());
+
+        if (isExistProductBySlug.isPresent()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(new ResultResponse<>(StatusCode.CONFLICT, Messages.PRODUCT_EXIST, null));
+        }
+
+        Product newProduct = mapRequestToProduct(productRequest);
+
+        Optional<Category> category = categoryRepository.findById(productRequest.getCategory_id());
+        category.ifPresent(newProduct::setCategory);
+
+        Product savedProduct = productRepository.save(newProduct);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(new ResultResponse<>(StatusCode.SUCCESS, Messages.ADD_PRODUCT_SUCCESS, mapProductToResponse(savedProduct)));
+    }
+
+    @Override
+    public ResponseEntity<ResultResponse<ProductResponse>> updateProduct(Integer id, ProductRequest productRequest) {
+        Optional<Product> optionalProduct = productRepository.findById(id);
+
+        if (optionalProduct.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResultResponse<>(StatusCode.NOT_FOUND, Messages.PRODUCT_NOT_FOUND, null));
+        }
+
+        Product existingProduct = optionalProduct.get();
+
+        if (!existingProduct.getSlug().equals(productRequest.getSlug())) {
+            Optional<Product> isExistProductBySlug = productRepository.findBySlugAndIdNot(productRequest.getSlug(), id);
+
+            if (isExistProductBySlug.isPresent()) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(new ResultResponse<>(StatusCode.CONFLICT, Messages.PRODUCT_EXIST, null));
+            }
+        }
+
+        modelMapper.map(productRequest, existingProduct);
+
+        Optional<Category> category = categoryRepository.findById(productRequest.getCategory_id());
+        category.ifPresent(existingProduct::setCategory);
+
+        Product updatedProduct = productRepository.save(existingProduct);
+
+        return ResponseEntity.status(HttpStatus.OK).body(new ResultResponse<>(StatusCode.SUCCESS, Messages.UPDATE_PRODUCT_SUCCESS, mapProductToResponse(updatedProduct)));
+    }
+
+
+    @Override
+    public ResponseEntity<ResultResponse<String>> deleteProduct(Integer id) {
+        if (productRepository.existsById(id)) {
+            productRepository.deleteById(id);
+
+            return ResponseEntity.status(HttpStatus.OK).body(new ResultResponse<>(StatusCode.SUCCESS, Messages.DELETE_PRODUCT_SUCCESS, null));
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResultResponse<>(StatusCode.NOT_FOUND, Messages.PRODUCT_NOT_FOUND, null));
+        }
+    }
+
+    private ProductResponse mapProductToResponse(Product product) {
+        ProductResponse productResponse = modelMapper.map(product, ProductResponse.class);
+
+        if (product.getCategory() != null) {
+            productResponse.setCategory_id(product.getCategory().getId());
+        }
+
+        return productResponse;
+    }
+
+    private Product mapRequestToProduct(ProductRequest productRequest) {
+        return modelMapper.map(productRequest, Product.class);
     }
 }
