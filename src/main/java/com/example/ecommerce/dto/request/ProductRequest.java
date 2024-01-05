@@ -3,12 +3,15 @@ package com.example.ecommerce.dto.request;
 import com.example.ecommerce.validation.ValidProductType;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 public class ProductRequest {
@@ -32,4 +35,9 @@ public class ProductRequest {
     private BigDecimal price;
     private boolean status;
     private Integer category_id;
+
+    @NotNull(message = "Variants is required")
+    @Size(min = 1, message = "Variants is required")
+    @Valid
+    private List<VariantRequest> variants;
 }
