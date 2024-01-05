@@ -40,18 +40,15 @@ public class Variant {
 
     private Integer quantity;
 
-    private String size;
-
-    private String color;
-
-    private BigDecimal weight;
-
     @Enumerated(EnumType.STRING)
     private ProductStatus status;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
+
+    @OneToMany(mappedBy = "variant")
+    private List<VariantAttribute> variantAttributes;
 
     // Sử dụng orphanRemoval = true để tự động xóa các Variant hoặc SKU khi chúng không còn được tham chiếu từ Product hoặc Variant.
     @OneToMany(mappedBy = "productVariant", cascade = CascadeType.ALL, orphanRemoval = true)

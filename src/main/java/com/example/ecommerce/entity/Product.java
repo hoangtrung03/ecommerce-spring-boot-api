@@ -36,6 +36,9 @@ public class Product {
     // Image is show on listing page
     private String images;
     private BigDecimal price;
+    
+    @Enumerated(EnumType.STRING)
+    private ProductType type;
 
     // Status active or inactive to response on frontend
     @Column(columnDefinition = "BOOLEAN")

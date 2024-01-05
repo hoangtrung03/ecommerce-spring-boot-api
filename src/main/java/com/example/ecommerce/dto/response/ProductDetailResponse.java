@@ -7,12 +7,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ProductResponse {
+public class ProductDetailResponse {
     private Integer id;
     private ProductType type;
     private String name;
@@ -23,4 +24,5 @@ public class ProductResponse {
     private BigDecimal price;
     private boolean status;
     private Integer category_id;
+    private List<VariantResponse> variants;
 }

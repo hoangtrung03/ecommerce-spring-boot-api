@@ -1,12 +1,11 @@
 package com.example.ecommerce.service.impl;
 
 import com.example.ecommerce.dto.request.ProductRequest;
-import com.example.ecommerce.dto.response.PaginationInfo;
-import com.example.ecommerce.dto.response.ProductResponse;
-import com.example.ecommerce.dto.response.ResultResponse;
-import com.example.ecommerce.dto.response.ResultWithPaginationResponse;
+import com.example.ecommerce.dto.response.*;
 import com.example.ecommerce.entity.Category;
 import com.example.ecommerce.entity.Product;
+import com.example.ecommerce.entity.SKU;
+import com.example.ecommerce.entity.Variant;
 import com.example.ecommerce.model.Messages;
 import com.example.ecommerce.model.StatusCode;
 import com.example.ecommerce.repository.CategoryRepository;
@@ -54,10 +53,10 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ResponseEntity<ResultResponse<ProductResponse>> getProduct(Integer id) {
+    public ResponseEntity<ResultResponse<ProductDetailResponse>> getProduct(Integer id) {
         Optional<Product> optionalProduct = productRepository.findById(id);
 
-        return optionalProduct.map(product -> ResponseEntity.status(HttpStatus.OK).body(new ResultResponse<>(StatusCode.SUCCESS, Messages.GET_PRODUCT_SUCCESS, mapProductToResponse(product))))
+        return optionalProduct.map(product -> ResponseEntity.status(HttpStatus.OK).body(new ResultResponse<>(StatusCode.SUCCESS, Messages.GET_PRODUCT_SUCCESS, mapProductDetailToResponse(product))))
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
@@ -127,6 +126,36 @@ public class ProductServiceImpl implements ProductService {
         }
 
         return productResponse;
+    }
+
+    private ProductDetailResponse mapProductDetailToResponse(Product product) {
+        ProductDetailResponse productDetailResponse = modelMapper.map(product, ProductDetailResponse.class);
+
+        if (product.getCategory() != null) {
+            productDetailResponse.setCategory_id(product.getCategory().getId());
+        }
+
+        List<VariantResponse> variantResponses = product.getVariants().stream()
+                .map(this::mapVariantToResponse)
+                .collect(Collectors.toList());
+        productDetailResponse.setVariants(variantResponses);
+
+        return productDetailResponse;
+    }
+
+    private VariantResponse mapVariantToResponse(Variant variant) {
+        VariantResponse variantResponse = modelMapper.map(variant, VariantResponse.class);
+
+        List<SKUResponse> skuResponses = variant.getSkus().stream()
+                .map(this::mapSKUToResponse)
+                .collect(Collectors.toList());
+        variantResponse.setSkus(skuResponses);
+
+        return variantResponse;
+    }
+
+    private SKUResponse mapSKUToResponse(SKU sku) {
+        return modelMapper.map(sku, SKUResponse.class);
     }
 
     private Product mapRequestToProduct(ProductRequest productRequest) {

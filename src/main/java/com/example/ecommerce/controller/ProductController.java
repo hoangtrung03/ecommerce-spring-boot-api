@@ -1,6 +1,7 @@
 package com.example.ecommerce.controller;
 
 import com.example.ecommerce.dto.request.ProductRequest;
+import com.example.ecommerce.dto.response.ProductDetailResponse;
 import com.example.ecommerce.dto.response.ProductResponse;
 import com.example.ecommerce.dto.response.ResultResponse;
 import com.example.ecommerce.dto.response.ResultWithPaginationResponse;
@@ -30,7 +31,7 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ResultResponse<ProductResponse>> getProduct(@PathVariable("id") Integer id) {
+    public ResponseEntity<ResultResponse<ProductDetailResponse>> getProduct(@PathVariable("id") Integer id) {
         return productService.getProduct(id);
     }
 
