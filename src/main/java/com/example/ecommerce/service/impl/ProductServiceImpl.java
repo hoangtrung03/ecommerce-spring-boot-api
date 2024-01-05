@@ -1,6 +1,7 @@
 package com.example.ecommerce.service.impl;
 
 import com.example.ecommerce.dto.request.ProductRequest;
+import com.example.ecommerce.dto.request.VariantRequest;
 import com.example.ecommerce.dto.response.*;
 import com.example.ecommerce.entity.Category;
 import com.example.ecommerce.entity.Product;
@@ -83,7 +84,8 @@ public class ProductServiceImpl implements ProductService {
         Optional<Product> optionalProduct = productRepository.findById(id);
 
         if (optionalProduct.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResultResponse<>(StatusCode.NOT_FOUND, Messages.PRODUCT_NOT_FOUND, null));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ResultResponse<>(StatusCode.NOT_FOUND, Messages.PRODUCT_NOT_FOUND, null));
         }
 
         Product existingProduct = optionalProduct.get();
@@ -92,18 +94,24 @@ public class ProductServiceImpl implements ProductService {
             Optional<Product> isExistProductBySlug = productRepository.findBySlugAndIdNot(productRequest.getSlug(), id);
 
             if (isExistProductBySlug.isPresent()) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body(new ResultResponse<>(StatusCode.CONFLICT, Messages.PRODUCT_EXIST, null));
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body(new ResultResponse<>(StatusCode.CONFLICT, Messages.PRODUCT_EXIST, null));
             }
         }
 
-        modelMapper.map(productRequest, existingProduct);
+        existingProduct.setName(productRequest.getName());
+        existingProduct.setSlug(productRequest.getSlug());
+        existingProduct.setDescription(productRequest.getDescription());
 
-        Optional<Category> category = categoryRepository.findById(productRequest.getCategory_id());
-        category.ifPresent(existingProduct::setCategory);
+        List<Variant> newVariants = productRequest.getVariants().stream()
+                .map(this::mapRequestToVariant)
+                .toList();
+        existingProduct.getVariants().addAll(newVariants);
 
         Product updatedProduct = productRepository.save(existingProduct);
 
-        return ResponseEntity.status(HttpStatus.OK).body(new ResultResponse<>(StatusCode.SUCCESS, Messages.UPDATE_PRODUCT_SUCCESS, mapProductToResponse(updatedProduct)));
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ResultResponse<>(StatusCode.SUCCESS, Messages.UPDATE_PRODUCT_SUCCESS, mapProductToResponse(updatedProduct)));
     }
 
 
@@ -142,6 +150,15 @@ public class ProductServiceImpl implements ProductService {
 
         return productDetailResponse;
     }
+
+    private Variant mapRequestToVariant(VariantRequest variantRequest) {
+        Variant variant = new Variant();
+        variant.setName(variantRequest.getName());
+        variant.setSlug(variantRequest.getSlug());
+
+        return variant;
+    }
+
 
     private VariantResponse mapVariantToResponse(Variant variant) {
         VariantResponse variantResponse = modelMapper.map(variant, VariantResponse.class);
