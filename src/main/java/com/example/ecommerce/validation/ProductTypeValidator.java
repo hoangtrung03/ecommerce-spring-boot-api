@@ -7,12 +7,6 @@ import jakarta.validation.ConstraintValidatorContext;
 import java.util.Arrays;
 
 public class ProductTypeValidator implements ConstraintValidator<ValidProductType, String> {
-
-    @Override
-    public void initialize(ValidProductType constraintAnnotation) {
-        // Initialization, if needed
-    }
-
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {
         return Arrays.stream(ProductType.values())
