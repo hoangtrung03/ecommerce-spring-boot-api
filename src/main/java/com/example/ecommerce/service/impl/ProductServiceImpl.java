@@ -53,6 +53,10 @@ public class ProductServiceImpl implements ProductService {
     public ResponseEntity<ResultResponse<ProductDetailResponse>> getProduct(Integer id) {
         Optional<Product> optionalProduct = productRepository.findById(id);
 
+        if (optionalProduct.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ResultResponse<>(StatusCode.NOT_FOUND, Messages.PRODUCT_NOT_FOUND, null));
+        }
+
         return optionalProduct.map(product -> ResponseEntity.status(HttpStatus.OK).body(new ResultResponse<>(StatusCode.SUCCESS, Messages.GET_PRODUCT_SUCCESS, mapProductDetailToResponse(product))))
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
@@ -143,7 +147,7 @@ public class ProductServiceImpl implements ProductService {
                 existingProduct.getVariants().clear();
                 existingProduct.getVariants().addAll(variantsToUpdate);
 
-                Product updatedProduct = productRepository.save(existingProduct);
+                productRepository.save(existingProduct);
 
                 return ResponseEntity.status(HttpStatus.OK)
                         .body(new ResultResponse<>(StatusCode.SUCCESS, Messages.UPDATE_PRODUCT_SUCCESS, mapProductDetailToResponse(existingProduct)));
@@ -216,6 +220,13 @@ public class ProductServiceImpl implements ProductService {
         variantResponse.setDiscount_rate(variant.getDiscountRate());
         variantResponse.setDiscounted_price(variant.getDiscountedPrice());
 
+        if (variant.getVariantAttributes() != null) {
+            List<VariantAttributeResponse> variantAttributeResponses = variant.getVariantAttributes().stream()
+                    .map(this::mapVariantAttributeToResponse)
+                    .toList();
+            variantResponse.setVariant_attributes(variantAttributeResponses);
+        }
+
         if (variant.getSkus() != null) {
             List<SKUResponse> skuResponses = variant.getSkus().stream()
                     .map(this::mapSKUToResponse)
@@ -224,6 +235,25 @@ public class ProductServiceImpl implements ProductService {
         }
 
         return variantResponse;
+    }
+
+    private VariantAttributeResponse mapVariantAttributeToResponse(VariantAttribute variantAttribute) {
+        VariantAttributeResponse variantAttributeResponse = new VariantAttributeResponse();
+        variantAttributeResponse.setName(variantAttribute.getName());
+
+        if (variantAttribute.getVariantValues() != null) {
+            List<VariantValueResponse> variantValueResponses = variantAttribute.getVariantValues().stream()
+                    .map(this::mapVariantValueToResponse)
+                    .toList();
+
+            variantAttributeResponse.setVariant_values(variantValueResponses);
+        }
+
+        return variantAttributeResponse;
+    }
+
+    private VariantValueResponse mapVariantValueToResponse(VariantValue variantAttribute) {
+        return VariantValueResponse.builder().id(variantAttribute.getId()).name(variantAttribute.getName()).build();
     }
 
     private SKUResponse mapSKUToResponse(SKU sku) {
