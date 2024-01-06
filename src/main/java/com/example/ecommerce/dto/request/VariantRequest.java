@@ -24,6 +24,9 @@ public class VariantRequest {
 
     @PositiveOrZero(message = "Discount Rate Variant is required")
     private BigDecimal discount_rate;
+    @PositiveOrZero(message = "Discounted Price Variant is required")
+    private BigDecimal discounted_price;
+
     private Integer quantity;
 
     @NotNull(message = "Variants Attributes is required")

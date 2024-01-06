@@ -7,5 +7,5 @@ import java.util.List;
 @Data
 public class VariantAttributeRequest {
     private String name;
-    private List<VariantValueRequest> variantValues;
+    private List<VariantValueRequest> variant_values;
 }

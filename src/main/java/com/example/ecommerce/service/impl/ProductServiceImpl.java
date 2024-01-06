@@ -3,10 +3,7 @@ package com.example.ecommerce.service.impl;
 import com.example.ecommerce.dto.request.ProductRequest;
 import com.example.ecommerce.dto.request.VariantRequest;
 import com.example.ecommerce.dto.response.*;
-import com.example.ecommerce.entity.Category;
-import com.example.ecommerce.entity.Product;
-import com.example.ecommerce.entity.SKU;
-import com.example.ecommerce.entity.Variant;
+import com.example.ecommerce.entity.*;
 import com.example.ecommerce.model.Messages;
 import com.example.ecommerce.model.StatusCode;
 import com.example.ecommerce.repository.CategoryRepository;
@@ -21,6 +18,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -34,11 +33,8 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ResponseEntity<ResultWithPaginationResponse<List<ProductResponse>>> getAllProducts(int page, int size, String sortBy, String sortDirection) {
-        Sort.Direction direction = Sort.Direction.ASC;
-
-        if (sortDirection != null && sortDirection.equalsIgnoreCase("desc")) {
-            direction = Sort.Direction.DESC;
-        }
+        Sort.Direction direction = sortDirection != null && sortDirection.equalsIgnoreCase("desc") ?
+                Sort.Direction.DESC : Sort.Direction.ASC;
 
         PageRequest pageable = PageRequest.of(page - 1, size, direction, sortBy);
         Page<Product> productPage = productRepository.findAll(pageable);
@@ -62,25 +58,49 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ResponseEntity<ResultResponse<ProductResponse>> addProduct(ProductRequest productRequest) {
-        Optional<Product> isExistProductBySlug = productRepository.findBySlug(productRequest.getSlug());
+    public ResponseEntity<ResultResponse<?>> addProduct(ProductRequest productRequest) {
+        Optional<Product> existingProduct = productRepository.findBySlug(productRequest.getSlug());
 
-        if (isExistProductBySlug.isPresent()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(new ResultResponse<>(StatusCode.CONFLICT, Messages.PRODUCT_EXIST, null));
+        if (existingProduct.isPresent()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(new ResultResponse<>(StatusCode.CONFLICT, Messages.PRODUCT_EXIST, null));
         }
 
-        Product newProduct = mapRequestToProduct(productRequest);
+        ProductType requestType = ProductType.valueOf(productRequest.getType());
 
-        Optional<Category> category = categoryRepository.findById(productRequest.getCategory_id());
-        category.ifPresent(newProduct::setCategory);
+        switch (requestType) {
+            case SINGLE -> {
+                Product newSingleProduct = mapRequestToProduct(productRequest);
+                Optional<Category> singleProductCategory = categoryRepository.findById(productRequest.getCategory_id());
+                singleProductCategory.ifPresent(newSingleProduct::setCategory);
+                Product savedSingleProduct = productRepository.save(newSingleProduct);
 
-        Product savedProduct = productRepository.save(newProduct);
+                return ResponseEntity.status(HttpStatus.CREATED).body(new ResultResponse<>(StatusCode.SUCCESS, Messages.ADD_PRODUCT_SUCCESS, mapProductToResponse(savedSingleProduct)));
+            }
+            case VARIANTS -> {
+                Product newVariantProduct = mapRequestToProduct(productRequest);
+                Optional<Category> variantProductCategory = categoryRepository.findById(productRequest.getCategory_id());
+                variantProductCategory.ifPresent(newVariantProduct::setCategory);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(new ResultResponse<>(StatusCode.SUCCESS, Messages.ADD_PRODUCT_SUCCESS, mapProductToResponse(savedProduct)));
+                if (productRequest.getVariants() != null && !productRequest.getVariants().isEmpty()) {
+                    List<Variant> newVariants = productRequest.getVariants().stream()
+                            .map(variantRequest -> mapRequestToVariant(variantRequest, newVariantProduct))
+                            .toList();
+                    newVariantProduct.setVariants(newVariants);
+                }
+
+                Product savedVariantProduct = productRepository.save(newVariantProduct);
+
+                return ResponseEntity.status(HttpStatus.CREATED).body(new ResultResponse<>(StatusCode.SUCCESS, Messages.ADD_PRODUCT_SUCCESS, mapProductDetailToResponse(savedVariantProduct)));
+            }
+            default -> {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResultResponse<>(StatusCode.BAD_REQUEST, Messages.INVALID_PRODUCT_TYPE, null));
+            }
+        }
     }
 
     @Override
-    public ResponseEntity<ResultResponse<ProductResponse>> updateProduct(Integer id, ProductRequest productRequest) {
+    public ResponseEntity<ResultResponse<?>> updateProduct(Integer id, ProductRequest productRequest) {
         Optional<Product> optionalProduct = productRepository.findById(id);
 
         if (optionalProduct.isEmpty()) {
@@ -89,6 +109,7 @@ public class ProductServiceImpl implements ProductService {
         }
 
         Product existingProduct = optionalProduct.get();
+        ProductType requestType = ProductType.valueOf(productRequest.getType());
 
         if (!existingProduct.getSlug().equals(productRequest.getSlug())) {
             Optional<Product> isExistProductBySlug = productRepository.findBySlugAndIdNot(productRequest.getSlug(), id);
@@ -101,17 +122,37 @@ public class ProductServiceImpl implements ProductService {
 
         existingProduct.setName(productRequest.getName());
         existingProduct.setSlug(productRequest.getSlug());
+        existingProduct.setType(requestType);
         existingProduct.setDescription(productRequest.getDescription());
 
-        List<Variant> newVariants = productRequest.getVariants().stream()
-                .map(this::mapRequestToVariant)
-                .toList();
-        existingProduct.getVariants().addAll(newVariants);
+        switch (requestType) {
+            case SINGLE -> {
+                Product updatedProduct = productRepository.save(existingProduct);
+                return ResponseEntity.status(HttpStatus.OK)
+                        .body(new ResultResponse<>(StatusCode.SUCCESS, Messages.UPDATE_PRODUCT_SUCCESS, mapProductToResponse(updatedProduct)));
+            }
+            case VARIANTS -> {
+                List<Variant> variantsToUpdate = new ArrayList<>();
 
-        Product updatedProduct = productRepository.save(existingProduct);
+                if (productRequest.getVariants() != null && !productRequest.getVariants().isEmpty()) {
+                    variantsToUpdate = productRequest.getVariants().stream()
+                            .map(variantRequest -> mapRequestToVariant(variantRequest, existingProduct))
+                            .collect(Collectors.toList());
+                }
 
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(new ResultResponse<>(StatusCode.SUCCESS, Messages.UPDATE_PRODUCT_SUCCESS, mapProductToResponse(updatedProduct)));
+                existingProduct.getVariants().clear();
+                existingProduct.getVariants().addAll(variantsToUpdate);
+
+                Product updatedProduct = productRepository.save(existingProduct);
+
+                return ResponseEntity.status(HttpStatus.OK)
+                        .body(new ResultResponse<>(StatusCode.SUCCESS, Messages.UPDATE_PRODUCT_SUCCESS, mapProductDetailToResponse(existingProduct)));
+            }
+            default -> {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new ResultResponse<>(StatusCode.BAD_REQUEST, Messages.INVALID_PRODUCT_TYPE, null));
+            }
+        }
     }
 
 
@@ -139,34 +180,48 @@ public class ProductServiceImpl implements ProductService {
     private ProductDetailResponse mapProductDetailToResponse(Product product) {
         ProductDetailResponse productDetailResponse = modelMapper.map(product, ProductDetailResponse.class);
 
+        if (product.getType() == ProductType.VARIANTS) {
+            List<VariantResponse> variantResponses = product.getVariants().stream()
+                    .map(this::mapVariantToResponse)
+                    .collect(Collectors.toList());
+            productDetailResponse.setVariants(variantResponses);
+        }
+
         if (product.getCategory() != null) {
             productDetailResponse.setCategory_id(product.getCategory().getId());
         }
 
-        List<VariantResponse> variantResponses = product.getVariants().stream()
-                .map(this::mapVariantToResponse)
-                .collect(Collectors.toList());
-        productDetailResponse.setVariants(variantResponses);
-
         return productDetailResponse;
     }
 
-    private Variant mapRequestToVariant(VariantRequest variantRequest) {
-        Variant variant = new Variant();
-        variant.setName(variantRequest.getName());
-        variant.setSlug(variantRequest.getSlug());
+    private Variant mapRequestToVariant(VariantRequest variantRequest, Product product) {
+        Variant variant = modelMapper.map(variantRequest, Variant.class);
+        variant.setProduct(product);
+        variant.setDiscountRate(variantRequest.getDiscount_rate());
+
+        BigDecimal discountedPrice = variantRequest.getPrice().subtract(variantRequest.getPrice().multiply(variantRequest.getDiscount_rate().divide(BigDecimal.valueOf(100))));
+        variant.setDiscountedPrice(discountedPrice);
+
+        if (variant.getQuantity() > 0) {
+            variant.setStatus(ProductStatus.AVAILABLE);
+        } else {
+            variant.setStatus(ProductStatus.OUT_OF_STOCK);
+        }
 
         return variant;
     }
 
-
     private VariantResponse mapVariantToResponse(Variant variant) {
         VariantResponse variantResponse = modelMapper.map(variant, VariantResponse.class);
+        variantResponse.setDiscount_rate(variant.getDiscountRate());
+        variantResponse.setDiscounted_price(variant.getDiscountedPrice());
 
-        List<SKUResponse> skuResponses = variant.getSkus().stream()
-                .map(this::mapSKUToResponse)
-                .collect(Collectors.toList());
-        variantResponse.setSkus(skuResponses);
+        if (variant.getSkus() != null) {
+            List<SKUResponse> skuResponses = variant.getSkus().stream()
+                    .map(this::mapSKUToResponse)
+                    .collect(Collectors.toList());
+            variantResponse.setSkus(skuResponses);
+        }
 
         return variantResponse;
     }

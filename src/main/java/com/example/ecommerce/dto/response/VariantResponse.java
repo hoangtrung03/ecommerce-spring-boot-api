@@ -19,10 +19,10 @@ public class VariantResponse {
     private String slug;
     private String images;
     private BigDecimal price;
-    private BigDecimal discountedPrice;
-    private BigDecimal discountRate;
+    private BigDecimal discount_rate;
+    private BigDecimal discounted_price;
     private Integer quantity;
     private ProductStatus status;
-    private List<VariantAttributeResponse> variantAttributes;
+    private List<VariantAttributeResponse> variant_attributes;
     private List<SKUResponse> skus;
 }

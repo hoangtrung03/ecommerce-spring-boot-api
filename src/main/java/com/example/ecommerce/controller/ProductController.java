@@ -36,12 +36,12 @@ public class ProductController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<ResultResponse<ProductResponse>> addProduct(@RequestBody @Valid ProductRequest productRequest) {
+    public ResponseEntity<ResultResponse<?>> addProduct(@RequestBody @Valid ProductRequest productRequest) {
         return productService.addProduct(productRequest);
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<ResultResponse<ProductResponse>> updateProduct(
+    public ResponseEntity<ResultResponse<?>> updateProduct(
             @PathVariable("id") Integer id,
             @RequestBody @Valid ProductRequest productRequest) {
         return productService.updateProduct(id, productRequest);

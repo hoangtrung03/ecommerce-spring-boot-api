@@ -51,6 +51,7 @@ public class Messages {
     public static final String DELETE_PRODUCT_SUCCESS = "Delete product success";
     public static final String PRODUCT_NOT_FOUND = "Product not found";
     public static final String PRODUCT_EXIST = "Product exist";
+    public static final String INVALID_PRODUCT_TYPE = "Invalid product type";
 
     // Category messages
     public static final String GET_ALL_CATEGORY_SUCCESS = "Get all categories success";

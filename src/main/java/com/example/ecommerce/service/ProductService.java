@@ -14,9 +14,9 @@ public interface ProductService {
 
     ResponseEntity<ResultResponse<ProductDetailResponse>> getProduct(Integer id);
 
-    ResponseEntity<ResultResponse<ProductResponse>> addProduct(ProductRequest productRequest);
+    ResponseEntity<ResultResponse<?>> addProduct(ProductRequest productRequest);
 
-    ResponseEntity<ResultResponse<ProductResponse>> updateProduct(Integer id, ProductRequest productRequest);
+    ResponseEntity<ResultResponse<?>> updateProduct(Integer id, ProductRequest productRequest);
 
     ResponseEntity<ResultResponse<String>> deleteProduct(Integer id);
 }
