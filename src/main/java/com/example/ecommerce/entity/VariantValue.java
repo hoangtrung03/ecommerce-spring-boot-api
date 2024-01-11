@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "ec_variant_values")
 public class VariantValue {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Integer id;
 
     private String name;

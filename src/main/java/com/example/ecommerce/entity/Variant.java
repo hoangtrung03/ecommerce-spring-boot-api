@@ -20,7 +20,7 @@ import java.util.List;
 @Table(name = "ec_variants")
 public class Variant {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Integer id;
 
     private String name;
@@ -47,7 +47,7 @@ public class Variant {
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
-    @OneToMany(mappedBy = "variant")
+    @OneToMany(mappedBy = "variant", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<VariantAttribute> variantAttributes;
 
     // Sử dụng orphanRemoval = true để tự động xóa các Variant hoặc SKU khi chúng không còn được tham chiếu từ Product hoặc Variant.

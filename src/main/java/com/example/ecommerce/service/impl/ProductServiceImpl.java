@@ -1,14 +1,16 @@
 package com.example.ecommerce.service.impl;
 
 import com.example.ecommerce.dto.request.ProductRequest;
+import com.example.ecommerce.dto.request.VariantAttributeRequest;
 import com.example.ecommerce.dto.request.VariantRequest;
+import com.example.ecommerce.dto.request.VariantValueRequest;
 import com.example.ecommerce.dto.response.*;
 import com.example.ecommerce.entity.*;
 import com.example.ecommerce.model.Messages;
 import com.example.ecommerce.model.StatusCode;
-import com.example.ecommerce.repository.CategoryRepository;
-import com.example.ecommerce.repository.ProductRepository;
+import com.example.ecommerce.repository.*;
 import com.example.ecommerce.service.ProductService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -30,6 +32,9 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final ModelMapper modelMapper;
     private final CategoryRepository categoryRepository;
+    private final VariantRepository variantRepository;
+    private final VariantAttributeRepository variantAttributeRepository;
+    private final VariantValueRepository variantValueRepository;
 
     @Override
     public ResponseEntity<ResultWithPaginationResponse<List<ProductResponse>>> getAllProducts(int page, int size, String sortBy, String sortDirection) {
@@ -62,6 +67,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<ResultResponse<?>> addProduct(ProductRequest productRequest) {
         Optional<Product> existingProduct = productRepository.findBySlug(productRequest.getSlug());
 
@@ -72,33 +78,35 @@ public class ProductServiceImpl implements ProductService {
 
         ProductType requestType = ProductType.valueOf(productRequest.getType());
 
+        Product newProduct = mapRequestToProduct(productRequest);
+        Optional<Category> productCategory = categoryRepository.findById(productRequest.getCategory_id());
+        productCategory.ifPresent(newProduct::setCategory);
+
         switch (requestType) {
             case SINGLE -> {
-                Product newSingleProduct = mapRequestToProduct(productRequest);
-                Optional<Category> singleProductCategory = categoryRepository.findById(productRequest.getCategory_id());
-                singleProductCategory.ifPresent(newSingleProduct::setCategory);
-                Product savedSingleProduct = productRepository.save(newSingleProduct);
-
-                return ResponseEntity.status(HttpStatus.CREATED).body(new ResultResponse<>(StatusCode.SUCCESS, Messages.ADD_PRODUCT_SUCCESS, mapProductToResponse(savedSingleProduct)));
+                newProduct.setVariants(new ArrayList<>());
+                Product savedSingleProduct = productRepository.save(newProduct);
+                return ResponseEntity.status(HttpStatus.CREATED)
+                        .body(new ResultResponse<>(StatusCode.SUCCESS, Messages.ADD_PRODUCT_SUCCESS, mapProductToResponse(savedSingleProduct)));
             }
             case VARIANTS -> {
-                Product newVariantProduct = mapRequestToProduct(productRequest);
-                Optional<Category> variantProductCategory = categoryRepository.findById(productRequest.getCategory_id());
-                variantProductCategory.ifPresent(newVariantProduct::setCategory);
+                List<VariantRequest> variantRequests = productRequest.getVariants();
+                newProduct.setVariants(new ArrayList<>());
+                Product savedVariantProduct = productRepository.save(newProduct);
 
-                if (productRequest.getVariants() != null && !productRequest.getVariants().isEmpty()) {
-                    List<Variant> newVariants = productRequest.getVariants().stream()
-                            .map(variantRequest -> mapRequestToVariant(variantRequest, newVariantProduct))
-                            .toList();
-                    newVariantProduct.setVariants(newVariants);
+                if (variantRequests != null && !variantRequests.isEmpty()) {
+                    List<Variant> variants = variantRequests.stream()
+                            .map(variantRequest -> mapRequestToVariant(variantRequest, savedVariantProduct))
+                            .collect(Collectors.toList());
+                    savedVariantProduct.setVariants(variants);
                 }
 
-                Product savedVariantProduct = productRepository.save(newVariantProduct);
-
-                return ResponseEntity.status(HttpStatus.CREATED).body(new ResultResponse<>(StatusCode.SUCCESS, Messages.ADD_PRODUCT_SUCCESS, mapProductDetailToResponse(savedVariantProduct)));
+                return ResponseEntity.status(HttpStatus.CREATED)
+                        .body(new ResultResponse<>(StatusCode.SUCCESS, Messages.ADD_PRODUCT_SUCCESS, mapProductDetailToResponse(savedVariantProduct)));
             }
             default -> {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ResultResponse<>(StatusCode.BAD_REQUEST, Messages.INVALID_PRODUCT_TYPE, null));
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new ResultResponse<>(StatusCode.BAD_REQUEST, Messages.INVALID_PRODUCT_TYPE, null));
             }
         }
     }
@@ -142,6 +150,9 @@ public class ProductServiceImpl implements ProductService {
                     variantsToUpdate = productRequest.getVariants().stream()
                             .map(variantRequest -> mapRequestToVariant(variantRequest, existingProduct))
                             .collect(Collectors.toList());
+                    for (Variant variant : variantsToUpdate) {
+                        variant.setProduct(existingProduct); // Set Product cho từng Variant
+                    }
                 }
 
                 existingProduct.getVariants().clear();
@@ -212,6 +223,16 @@ public class ProductServiceImpl implements ProductService {
             variant.setStatus(ProductStatus.OUT_OF_STOCK);
         }
 
+        variant.setVariantAttributes(new ArrayList<>());
+        variantRepository.save(variant);
+
+        if (variantRequest.getVariant_attributes() != null && !variantRequest.getVariant_attributes().isEmpty()) {
+            List<VariantAttribute> variantAttributes = variantRequest.getVariant_attributes().stream()
+                    .map(attributeRequest -> mapRequestToVariantAttribute(attributeRequest, variant))
+                    .collect(Collectors.toList());
+            variant.setVariantAttributes(variantAttributes);
+        }
+
         return variant;
     }
 
@@ -239,6 +260,7 @@ public class ProductServiceImpl implements ProductService {
 
     private VariantAttributeResponse mapVariantAttributeToResponse(VariantAttribute variantAttribute) {
         VariantAttributeResponse variantAttributeResponse = new VariantAttributeResponse();
+        variantAttributeResponse.setId(variantAttribute.getId());
         variantAttributeResponse.setName(variantAttribute.getName());
 
         if (variantAttribute.getVariantValues() != null) {
@@ -262,5 +284,28 @@ public class ProductServiceImpl implements ProductService {
 
     private Product mapRequestToProduct(ProductRequest productRequest) {
         return modelMapper.map(productRequest, Product.class);
+    }
+
+    private VariantAttribute mapRequestToVariantAttribute(VariantAttributeRequest attributeRequest, Variant variant) {
+        VariantAttribute variantAttribute = modelMapper.map(attributeRequest, VariantAttribute.class);
+        variantAttribute.setVariant(variant);
+        variantAttribute.setVariantValues(new ArrayList<>());
+        VariantAttribute result = variantAttributeRepository.save(variantAttribute);
+
+        if (attributeRequest.getVariant_values() != null && !attributeRequest.getVariant_values().isEmpty()) {
+            List<VariantValue> variantValues = attributeRequest.getVariant_values().stream()
+                    .map(valueRequest -> mapRequestToVariantValue(valueRequest, result))
+                    .collect(Collectors.toList());
+            variantAttribute.setVariantValues(variantValues);
+        }
+
+        return result;
+    }
+
+    private VariantValue mapRequestToVariantValue(VariantValueRequest valueRequest, VariantAttribute variantAttribute) {
+        VariantValue variantValue = modelMapper.map(valueRequest, VariantValue.class);
+        variantValue.setVariantAttribute(variantAttribute);
+
+        return variantValueRepository.save(variantValue);
     }
 }

@@ -20,7 +20,7 @@ import java.util.List;
 @Table(name = "ec_products")
 public class Product {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Integer id;
 
     @Column(length = 100)
@@ -36,7 +36,7 @@ public class Product {
     // Image is show on listing page
     private String images;
     private BigDecimal price;
-    
+
     @Enumerated(EnumType.STRING)
     private ProductType type;
 

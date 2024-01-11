@@ -16,7 +16,7 @@ import java.util.List;
 @Table(name = "ec_variant_attributes")
 public class VariantAttribute {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Integer id;
     private String name;
 
@@ -24,7 +24,7 @@ public class VariantAttribute {
     @JoinColumn(name = "variant_id", nullable = false)
     private Variant variant;
 
-    @OneToMany(mappedBy = "variantAttribute")
+    @OneToMany(mappedBy = "variantAttribute", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<VariantValue> variantValues;
 
 }
