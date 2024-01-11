@@ -96,7 +96,7 @@ public class ProductServiceImpl implements ProductService {
 
                 if (variantRequests != null && !variantRequests.isEmpty()) {
                     List<Variant> variants = variantRequests.stream()
-                            .map(variantRequest -> mapRequestToVariant(variantRequest, savedVariantProduct))
+                            .map(variantRequest -> mapRequestToVariant(variantRequest, savedVariantProduct, false))
                             .collect(Collectors.toList());
                     savedVariantProduct.setVariants(variants);
                 }
@@ -148,10 +148,10 @@ public class ProductServiceImpl implements ProductService {
 
                 if (productRequest.getVariants() != null && !productRequest.getVariants().isEmpty()) {
                     variantsToUpdate = productRequest.getVariants().stream()
-                            .map(variantRequest -> mapRequestToVariant(variantRequest, existingProduct))
+                            .map(variantRequest -> mapRequestToVariant(variantRequest, existingProduct, true))
                             .collect(Collectors.toList());
                     for (Variant variant : variantsToUpdate) {
-                        variant.setProduct(existingProduct); // Set Product cho từng Variant
+                        variant.setProduct(existingProduct);
                     }
                 }
 
@@ -209,33 +209,6 @@ public class ProductServiceImpl implements ProductService {
         return productDetailResponse;
     }
 
-    private Variant mapRequestToVariant(VariantRequest variantRequest, Product product) {
-        Variant variant = modelMapper.map(variantRequest, Variant.class);
-        variant.setProduct(product);
-        variant.setDiscountRate(variantRequest.getDiscount_rate());
-
-        BigDecimal discountedPrice = variantRequest.getPrice().subtract(variantRequest.getPrice().multiply(variantRequest.getDiscount_rate().divide(BigDecimal.valueOf(100))));
-        variant.setDiscountedPrice(discountedPrice);
-
-        if (variant.getQuantity() > 0) {
-            variant.setStatus(ProductStatus.AVAILABLE);
-        } else {
-            variant.setStatus(ProductStatus.OUT_OF_STOCK);
-        }
-
-        variant.setVariantAttributes(new ArrayList<>());
-        variantRepository.save(variant);
-
-        if (variantRequest.getVariant_attributes() != null && !variantRequest.getVariant_attributes().isEmpty()) {
-            List<VariantAttribute> variantAttributes = variantRequest.getVariant_attributes().stream()
-                    .map(attributeRequest -> mapRequestToVariantAttribute(attributeRequest, variant))
-                    .collect(Collectors.toList());
-            variant.setVariantAttributes(variantAttributes);
-        }
-
-        return variant;
-    }
-
     private VariantResponse mapVariantToResponse(Variant variant) {
         VariantResponse variantResponse = modelMapper.map(variant, VariantResponse.class);
         variantResponse.setDiscount_rate(variant.getDiscountRate());
@@ -286,15 +259,58 @@ public class ProductServiceImpl implements ProductService {
         return modelMapper.map(productRequest, Product.class);
     }
 
-    private VariantAttribute mapRequestToVariantAttribute(VariantAttributeRequest attributeRequest, Variant variant) {
+    private Variant mapRequestToVariant(VariantRequest variantRequest, Product product, boolean isUpdate) {
+        Variant variant = modelMapper.map(variantRequest, Variant.class);
+        variant.setProduct(product);
+        variant.setDiscountRate(variantRequest.getDiscount_rate());
+
+        BigDecimal discountedPrice = variantRequest.getPrice().subtract(variantRequest.getPrice().multiply(variantRequest.getDiscount_rate().divide(BigDecimal.valueOf(100))));
+        variant.setDiscountedPrice(discountedPrice);
+
+        if (variant.getQuantity() > 0) {
+            variant.setStatus(ProductStatus.AVAILABLE);
+        } else {
+            variant.setStatus(ProductStatus.OUT_OF_STOCK);
+        }
+
+        variant.setVariantAttributes(new ArrayList<>());
+
+        if (isUpdate) {
+            variant.setId(variantRequest.getId());
+            boolean isExistVariant = variantRepository.existsById(variant.getId());
+
+            if (!isExistVariant) {
+                return null;
+            }
+        } else {
+            variant.setId(null);
+        }
+
+        variantRepository.save(variant);
+
+        if (variantRequest.getVariant_attributes() != null && !variantRequest.getVariant_attributes().isEmpty()) {
+            List<VariantAttribute> variantAttributes = variantRequest.getVariant_attributes().stream()
+                    .map(attributeRequest -> mapRequestToVariantAttribute(attributeRequest, variant, isUpdate))
+                    .collect(Collectors.toList());
+            variant.setVariantAttributes(variantAttributes);
+        }
+
+        return variant;
+    }
+
+    private VariantAttribute mapRequestToVariantAttribute(VariantAttributeRequest attributeRequest, Variant variant, boolean isUpdate) {
         VariantAttribute variantAttribute = modelMapper.map(attributeRequest, VariantAttribute.class);
         variantAttribute.setVariant(variant);
         variantAttribute.setVariantValues(new ArrayList<>());
+
+        if (!isUpdate) {
+            variantAttribute.setId(null);
+        }
         VariantAttribute result = variantAttributeRepository.save(variantAttribute);
 
         if (attributeRequest.getVariant_values() != null && !attributeRequest.getVariant_values().isEmpty()) {
             List<VariantValue> variantValues = attributeRequest.getVariant_values().stream()
-                    .map(valueRequest -> mapRequestToVariantValue(valueRequest, result))
+                    .map(valueRequest -> mapRequestToVariantValue(valueRequest, result, isUpdate))
                     .collect(Collectors.toList());
             variantAttribute.setVariantValues(variantValues);
         }
@@ -302,9 +318,13 @@ public class ProductServiceImpl implements ProductService {
         return result;
     }
 
-    private VariantValue mapRequestToVariantValue(VariantValueRequest valueRequest, VariantAttribute variantAttribute) {
+    private VariantValue mapRequestToVariantValue(VariantValueRequest valueRequest, VariantAttribute variantAttribute, boolean isUpdate) {
         VariantValue variantValue = modelMapper.map(valueRequest, VariantValue.class);
         variantValue.setVariantAttribute(variantAttribute);
+
+        if (!isUpdate) {
+            variantValue.setId(null);
+        }
 
         return variantValueRepository.save(variantValue);
     }

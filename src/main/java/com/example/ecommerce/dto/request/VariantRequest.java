@@ -12,6 +12,8 @@ import java.util.List;
 
 @Data
 public class VariantRequest {
+    private Integer id;
+
     @NotBlank(message = "Name Variant is required")
     private String name;
 
