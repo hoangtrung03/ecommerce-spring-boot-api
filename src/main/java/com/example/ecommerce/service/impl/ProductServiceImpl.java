@@ -115,17 +115,11 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public ResponseEntity<ResultResponse<?>> updateProduct(Integer id, ProductRequest productRequest) {
-        Optional<Product> optionalProduct = productRepository.findById(id);
+        Product optionalProduct = productRepository.findById(id).orElseThrow(() -> new VariantException(Messages.PRODUCT_NOT_FOUND));
 
-        if (optionalProduct.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ResultResponse<>(StatusCode.NOT_FOUND, Messages.PRODUCT_NOT_FOUND, null));
-        }
-
-        Product existingProduct = optionalProduct.get();
         ProductType requestType = ProductType.valueOf(productRequest.getType());
 
-        if (!existingProduct.getSlug().equals(productRequest.getSlug())) {
+        if (!optionalProduct.getSlug().equals(productRequest.getSlug())) {
             Optional<Product> isExistProductBySlug = productRepository.findBySlugAndIdNot(productRequest.getSlug(), id);
 
             if (isExistProductBySlug.isPresent()) {
@@ -134,36 +128,35 @@ public class ProductServiceImpl implements ProductService {
             }
         }
 
-        existingProduct.setName(productRequest.getName());
-        existingProduct.setSlug(productRequest.getSlug());
-        existingProduct.setType(requestType);
-        existingProduct.setDescription(productRequest.getDescription());
+        optionalProduct.setName(productRequest.getName());
+        optionalProduct.setSlug(productRequest.getSlug());
+        optionalProduct.setType(requestType);
+        optionalProduct.setDescription(productRequest.getDescription());
 
         switch (requestType) {
             case SINGLE -> {
-                Product updatedProduct = productRepository.save(existingProduct);
+                Product updatedProduct = productRepository.save(optionalProduct);
                 return ResponseEntity.status(HttpStatus.OK)
                         .body(new ResultResponse<>(StatusCode.SUCCESS, Messages.UPDATE_PRODUCT_SUCCESS, mapProductToResponse(updatedProduct)));
             }
             case VARIANTS -> {
-                List<Variant> variantsToUpdate = new ArrayList<>();
-
                 if (productRequest.getVariants() != null && !productRequest.getVariants().isEmpty()) {
-                    variantsToUpdate = productRequest.getVariants().stream()
-                            .map(variantRequest -> mapRequestToVariant(variantRequest, existingProduct, true))
-                            .collect(Collectors.toList());
+                    List<Variant> variantsToUpdate = productRequest.getVariants().stream()
+                            .map(variantRequest -> mapRequestToVariant(variantRequest, optionalProduct, true))
+                            .toList();
+
                     for (Variant variant : variantsToUpdate) {
-                        variant.setProduct(existingProduct);
+                        variant.setProduct(optionalProduct);
                     }
+
+                    optionalProduct.getVariants().clear();
+                    optionalProduct.getVariants().addAll(variantsToUpdate);
                 }
 
-                existingProduct.getVariants().clear();
-                existingProduct.getVariants().addAll(variantsToUpdate);
-
-                productRepository.save(existingProduct);
+                productRepository.save(optionalProduct);
 
                 return ResponseEntity.status(HttpStatus.OK)
-                        .body(new ResultResponse<>(StatusCode.SUCCESS, Messages.UPDATE_PRODUCT_SUCCESS, mapProductDetailToResponse(existingProduct)));
+                        .body(new ResultResponse<>(StatusCode.SUCCESS, Messages.UPDATE_PRODUCT_SUCCESS, mapProductDetailToResponse(optionalProduct)));
             }
             default -> {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -283,9 +276,8 @@ public class ProductServiceImpl implements ProductService {
                     .orElseThrow(() -> new VariantException(Messages.VARIANT_NOT_FOUND));
         } else {
             variant.setId(null);
+            variantRepository.save(variant);
         }
-
-        variantRepository.save(variant);
 
         if (variantRequest.getVariant_attributes() != null && !variantRequest.getVariant_attributes().isEmpty()) {
             List<VariantAttribute> variantAttributes = variantRequest.getVariant_attributes().stream()
@@ -307,18 +299,17 @@ public class ProductServiceImpl implements ProductService {
             variantAttributeRepository.findById(variantAttribute.getId()).orElseThrow(() -> new VariantException(Messages.VARIANT_ATTRIBUTE_NOT_FOUND));
         } else {
             variantAttribute.setId(null);
+            variantAttributeRepository.save(variantAttribute);
         }
-
-        VariantAttribute result = variantAttributeRepository.save(variantAttribute);
 
         if (attributeRequest.getVariant_values() != null && !attributeRequest.getVariant_values().isEmpty()) {
             List<VariantValue> variantValues = attributeRequest.getVariant_values().stream()
-                    .map(valueRequest -> mapRequestToVariantValue(valueRequest, result, isUpdate))
+                    .map(valueRequest -> mapRequestToVariantValue(valueRequest, variantAttribute, isUpdate))
                     .collect(Collectors.toList());
             variantAttribute.setVariantValues(variantValues);
         }
 
-        return result;
+        return variantAttribute;
     }
 
     private VariantValue mapRequestToVariantValue(VariantValueRequest valueRequest, VariantAttribute variantAttribute, boolean isUpdate) {
@@ -330,8 +321,9 @@ public class ProductServiceImpl implements ProductService {
             variantValueRepository.findById(variantValue.getId()).orElseThrow(() -> new VariantException(Messages.VARIANT_VALUE_NOT_FOUND));
         } else {
             variantValue.setId(null);
+            variantValueRepository.save(variantValue);
         }
 
-        return variantValueRepository.save(variantValue);
+        return variantValue;
     }
 }
