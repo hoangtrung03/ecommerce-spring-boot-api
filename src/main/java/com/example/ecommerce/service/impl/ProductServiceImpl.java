@@ -80,8 +80,8 @@ public class ProductServiceImpl implements ProductService {
         ProductType requestType = ProductType.valueOf(productRequest.getType());
 
         Product newProduct = mapRequestToProduct(productRequest);
-        Optional<Category> productCategory = categoryRepository.findById(productRequest.getCategory_id());
-        productCategory.ifPresent(newProduct::setCategory);
+        Category productCategory = categoryRepository.findById(productRequest.getCategory_id()).orElseThrow(() -> new VariantException(Messages.CATEGORY_NOT_FOUND));
+        newProduct.setCategory(productCategory);
 
         switch (requestType) {
             case SINGLE -> {
@@ -132,6 +132,10 @@ public class ProductServiceImpl implements ProductService {
         optionalProduct.setSlug(productRequest.getSlug());
         optionalProduct.setType(requestType);
         optionalProduct.setDescription(productRequest.getDescription());
+        optionalProduct.setPrice(productRequest.getPrice());
+
+        Category productCategory = categoryRepository.findById(productRequest.getCategory_id()).orElseThrow(() -> new VariantException(Messages.CATEGORY_NOT_FOUND));
+        optionalProduct.setCategory(productCategory);
 
         switch (requestType) {
             case SINGLE -> {
