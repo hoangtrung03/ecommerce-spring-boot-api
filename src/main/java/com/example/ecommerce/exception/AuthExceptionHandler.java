@@ -89,4 +89,10 @@ public class AuthExceptionHandler {
     ResultResponse<Object> handleOtherException(Exception ex) {
         return new ResultResponse<>(StatusCode.INTERNAL_SERVER_ERROR, "A server internal error occurs.", ex.getMessage());
     }
+
+    @ExceptionHandler(VariantException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    ResultResponse<Object> handleVariantException(VariantException ex) {
+        return new ResultResponse<>(StatusCode.NOT_FOUND, ex.getMessage());
+    }
 }

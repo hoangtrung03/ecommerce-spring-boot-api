@@ -6,6 +6,7 @@ import com.example.ecommerce.dto.request.VariantRequest;
 import com.example.ecommerce.dto.request.VariantValueRequest;
 import com.example.ecommerce.dto.response.*;
 import com.example.ecommerce.entity.*;
+import com.example.ecommerce.exception.VariantException;
 import com.example.ecommerce.model.Messages;
 import com.example.ecommerce.model.StatusCode;
 import com.example.ecommerce.repository.*;
@@ -112,6 +113,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<ResultResponse<?>> updateProduct(Integer id, ProductRequest productRequest) {
         Optional<Product> optionalProduct = productRepository.findById(id);
 
@@ -277,11 +279,8 @@ public class ProductServiceImpl implements ProductService {
 
         if (isUpdate) {
             variant.setId(variantRequest.getId());
-            boolean isExistVariant = variantRepository.existsById(variant.getId());
-
-            if (!isExistVariant) {
-                return null;
-            }
+            variantRepository.findById(variant.getId())
+                    .orElseThrow(() -> new VariantException(Messages.VARIANT_NOT_FOUND));
         } else {
             variant.setId(null);
         }
@@ -303,9 +302,13 @@ public class ProductServiceImpl implements ProductService {
         variantAttribute.setVariant(variant);
         variantAttribute.setVariantValues(new ArrayList<>());
 
-        if (!isUpdate) {
+        if (isUpdate) {
+            variantAttribute.setId(attributeRequest.getId());
+            variantAttributeRepository.findById(variantAttribute.getId()).orElseThrow(() -> new VariantException(Messages.VARIANT_ATTRIBUTE_NOT_FOUND));
+        } else {
             variantAttribute.setId(null);
         }
+
         VariantAttribute result = variantAttributeRepository.save(variantAttribute);
 
         if (attributeRequest.getVariant_values() != null && !attributeRequest.getVariant_values().isEmpty()) {
@@ -322,7 +325,10 @@ public class ProductServiceImpl implements ProductService {
         VariantValue variantValue = modelMapper.map(valueRequest, VariantValue.class);
         variantValue.setVariantAttribute(variantAttribute);
 
-        if (!isUpdate) {
+        if (isUpdate) {
+            variantValue.setId(valueRequest.getId());
+            variantValueRepository.findById(variantValue.getId()).orElseThrow(() -> new VariantException(Messages.VARIANT_VALUE_NOT_FOUND));
+        } else {
             variantValue.setId(null);
         }
 

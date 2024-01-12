@@ -63,4 +63,9 @@ public class Messages {
     public static final String PARENT_CATEGORY_NOT_FOUND = "Parent category not found";
     public static final String SEARCH_CATEGORY_SUCCESS = "Search category success";
     public static final String CATEGORY_EXIST = "Category exist";
+
+    // Variant messages
+    public static final String VARIANT_NOT_FOUND = "Variant not found";
+    public static final String VARIANT_ATTRIBUTE_NOT_FOUND = "Variant attribute not found";
+    public static final String VARIANT_VALUE_NOT_FOUND = "Variant value not found";
 }
