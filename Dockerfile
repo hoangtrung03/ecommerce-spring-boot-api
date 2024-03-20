@@ -1,14 +1,14 @@
 FROM maven:3.8-openjdk-17 AS build
-WORKDIR /app
-COPY pom.xml .
-COPY src ./src
+
+COPY src /home/app/src
+COPY pom.xml /home/app
+RUN mvn -f /home/app/pom.xml clean package -DskipTests=true
 
 RUN mvn clean install
 
 FROM openjdk:17-jdk-alpine
-WORKDIR /app
 
-COPY target/Ecommerce-0.0.1-SNAPSHOT.jar app-1.0.0.jar
+COPY --from=build /home/app/target/Ecommerce-0.0.1-SNAPSHOT.jar /usr/local/lib/app-1.0.0.jar
 EXPOSE 8080
 
 ENTRYPOINT [ "java", "-jar", "app-1.0.0.jar" ]
